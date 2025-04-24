@@ -1,85 +1,92 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Loader2 } from "lucide-react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
+import { ServiceInput, ServiceSchema } from "@/db/schema/service_collection";
 
-const formSchema = z.object({
-  serviceName: z.string().min(3, {
-    message: "Service name must be at least 3 characters.",
-  }),
-  monthlyPrice: z.coerce.number().min(0, {
-    message: "Monthly price must be a positive number.",
-  }),
-  setupFee: z.coerce.number().min(0, {
-    message: "Setup fee must be a positive number.",
-  }),
-  slug: z
-    .string()
-    .min(3, {
-      message: "Slug must be at least 3 characters.",
-    })
-    .regex(/^[a-z0-9-]+$/, {
-      message: "Slug can only contain lowercase letters, numbers, and hyphens.",
-    }),
-  planDescription: z.string().min(10, {
-    message: "Plan description must be at least 10 characters.",
-  }),
-  status: z.enum(["active", "inactive", "deprecated"]),
-})
-
-type FormValues = z.infer<typeof formSchema>
+type FormValues = ServiceInput;
 
 interface ServiceFormProps {
-  initialData?: Partial<FormValues>
-  onSubmit: (data: FormValues) => void
-  isEditMode?: boolean
+  initialData?: Partial<FormValues>;
+  onSubmit: (data: FormValues) => void;
+  isEditMode?: boolean;
 }
 
-export function ServiceForm({ initialData, onSubmit, isEditMode = false }: ServiceFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
+export function ServiceForm({
+  initialData,
+  onSubmit,
+  isEditMode = false,
+}: ServiceFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(ServiceSchema),
     defaultValues: {
       serviceName: initialData?.serviceName || "",
-      monthlyPrice: initialData?.monthlyPrice || 0,
-      setupFee: initialData?.setupFee || 0,
-      slug: initialData?.slug || "",
+      monthlyPrice: initialData?.monthlyPrice || "0",
+      setupFee: initialData?.setupFee || "0",
       planDescription: initialData?.planDescription || "",
-      status: initialData?.status || "active",
+      status: initialData?.status || "Available",
     },
-  })
+  });
 
-  function handleSubmit(values: FormValues) {
-    setIsLoading(true)
+  async function handleSubmit(values: FormValues) {
+    setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      onSubmit(values)
-      setIsLoading(false)
-    }, 1000)
+    await onSubmit(values);
+
+    setIsLoading(false);
   }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>{isEditMode ? "Edit Service" : "Create New Service"}</CardTitle>
+        <CardTitle>
+          {isEditMode ? "Edit Service" : "Create New Service"}
+        </CardTitle>
         <CardDescription>
-          {isEditMode ? "Update service plan details and pricing." : "Add a new service plan to the system."}
+          {isEditMode
+            ? "Update service plan details and pricing."
+            : "Add a new service plan to the system."}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+            autoComplete="off"
+          >
             <FormField
               control={form.control}
               name="serviceName"
@@ -87,9 +94,11 @@ export function ServiceForm({ initialData, onSubmit, isEditMode = false }: Servi
                 <FormItem>
                   <FormLabel>Service Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Fiber 100Mbps" {...field} />
+                    <Input placeholder="Fiber 100Mbps" {...field} autoFocus />
                   </FormControl>
-                  <FormDescription>The name of the service plan as shown to customers.</FormDescription>
+                  <FormDescription>
+                    The name of the service plan as shown to customers.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -101,9 +110,9 @@ export function ServiceForm({ initialData, onSubmit, isEditMode = false }: Servi
                 name="monthlyPrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Monthly Price ($)</FormLabel>
+                    <FormLabel>Monthly Price (Rp)</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} step={0.01} {...field} />
+                      <Input type="number" min={0} {...field} />
                     </FormControl>
                     <FormDescription>Monthly subscription fee</FormDescription>
                     <FormMessage />
@@ -115,9 +124,9 @@ export function ServiceForm({ initialData, onSubmit, isEditMode = false }: Servi
                 name="setupFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Setup Fee ($)</FormLabel>
+                    <FormLabel>Setup Fee (Rp)</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} step={0.01} {...field} />
+                      <Input type="number" {...field} />
                     </FormControl>
                     <FormDescription>One-time installation fee</FormDescription>
                     <FormMessage />
@@ -125,21 +134,6 @@ export function ServiceForm({ initialData, onSubmit, isEditMode = false }: Servi
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input placeholder="fiber-100mbps" {...field} />
-                  </FormControl>
-                  <FormDescription>URL-friendly identifier (lowercase, no spaces, use hyphens)</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
@@ -154,7 +148,9 @@ export function ServiceForm({ initialData, onSubmit, isEditMode = false }: Servi
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>Detailed description of the service plan features</FormDescription>
+                  <FormDescription>
+                    Detailed description of the service plan features
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -166,27 +162,31 @@ export function ServiceForm({ initialData, onSubmit, isEditMode = false }: Servi
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="deprecated">Deprecated</SelectItem>
+                      <SelectItem value="Available">Available</SelectItem>
+                      <SelectItem value="Unavailable">Unavailable</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>Current availability status of this service plan</FormDescription>
+                  <FormDescription>
+                    Current availability status of this service plan
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             <CardFooter className="flex justify-between px-0">
-              <Button variant="outline" type="button">
-                Cancel
+              <Button asChild variant="outline" type="button">
+                <Link href={"/dashboard/services"}>Cancel</Link>
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
@@ -203,5 +203,5 @@ export function ServiceForm({ initialData, onSubmit, isEditMode = false }: Servi
         </Form>
       </CardContent>
     </Card>
-  )
+  );
 }

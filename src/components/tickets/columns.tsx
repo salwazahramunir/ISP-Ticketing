@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import type { ColumnDef } from "@tanstack/react-table"
-import type { Ticket } from "./data"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Ticket } from "./data";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +11,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Pencil, Eye, MessageSquare } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Pencil, Eye, MessageSquare } from "lucide-react";
 
 export const columns: ColumnDef<Ticket>[] = [
   {
@@ -31,35 +31,35 @@ export const columns: ColumnDef<Ticket>[] = [
     accessorKey: "ticketCategory",
     header: "Category",
     cell: ({ row }) => {
-      const category = row.getValue("ticketCategory") as string
+      const category = row.getValue("ticketCategory") as string;
       return (
         <Badge variant="outline" className="capitalize">
           {category}
         </Badge>
-      )
+      );
     },
   },
   {
     accessorKey: "priority",
     header: "Priority",
     cell: ({ row }) => {
-      const priority = row.getValue("priority") as string
+      const priority = row.getValue("priority") as string;
       return (
         <Badge
           variant={
             priority === "low"
               ? "outline"
               : priority === "medium"
-                ? "secondary"
-                : priority === "high"
-                  ? "default"
-                  : "destructive"
+              ? "secondary"
+              : priority === "high"
+              ? "default"
+              : "destructive"
           }
           className="capitalize"
         >
           {priority}
         </Badge>
-      )
+      );
     },
   },
   {
@@ -70,23 +70,23 @@ export const columns: ColumnDef<Ticket>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string
+      const status = row.getValue("status") as string;
       return (
         <Badge
           variant={
             status === "open"
               ? "default"
               : status === "in-progress"
-                ? "secondary"
-                : status === "resolved"
-                  ? "outline"
-                  : "destructive"
+              ? "secondary"
+              : status === "resolved"
+              ? "outline"
+              : "destructive"
           }
           className="capitalize"
         >
           {status.replace("-", " ")}
         </Badge>
-      )
+      );
     },
   },
   {
@@ -96,7 +96,7 @@ export const columns: ColumnDef<Ticket>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const ticket = row.original
+      const ticket = row.original;
 
       return (
         <DropdownMenu>
@@ -108,7 +108,11 @@ export const columns: ColumnDef<Ticket>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(ticket.id)}>Copy ticket ID</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(ticket.id)}
+            >
+              Copy ticket ID
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Eye className="mr-2 h-4 w-4" />
@@ -124,7 +128,7 @@ export const columns: ColumnDef<Ticket>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];
