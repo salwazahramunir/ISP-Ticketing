@@ -1,87 +1,74 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Loader2 } from "lucide-react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { services } from "@/components/services/data"
-import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CustomerSchema } from "@/db/schema/customer_collection";
+import { getAllData } from "@/action";
+import { Service } from "@/db/schema/service_collection";
+import Link from "next/link";
 
-const formSchema = z.object({
-  firstName: z.string().min(1, {
-    message: "First name is required.",
-  }),
-  lastName: z.string().min(1, {
-    message: "Last name is required.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phoneNumber: z.string().min(10, {
-    message: "Phone number must be at least 10 characters.",
-  }),
-  idType: z.enum(["passport", "national_id", "driver_license"]),
-  idNumber: z.string().min(1, {
-    message: "ID number is required.",
-  }),
-  streetAddress: z.string().min(1, {
-    message: "Street address is required.",
-  }),
-  city: z.string().min(1, {
-    message: "City is required.",
-  }),
-  province: z.string().min(1, {
-    message: "Province/State is required.",
-  }),
-  postalCode: z.string().min(1, {
-    message: "Postal code is required.",
-  }),
-  country: z.string().min(1, {
-    message: "Country is required.",
-  }),
-  serviceId: z.string().min(1, {
-    message: "Service is required.",
-  }),
-  installationDate: z.date({
-    required_error: "Installation date is required.",
-  }),
-  contractLength: z.coerce.number().min(1, {
-    message: "Contract length must be at least 1 month.",
-  }),
-  note: z.string().optional(),
-  status: z.enum(["active", "inactive", "pending"]),
-})
-
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<typeof CustomerSchema>;
 
 interface CustomerFormProps {
-  initialData?: Partial<FormValues>
-  onSubmit: (data: FormValues) => void
-  isEditMode?: boolean
+  initialData?: Partial<FormValues>;
+  onSubmit: (data: FormValues) => void;
+  isEditMode?: boolean;
 }
 
-export function CustomerForm({ initialData, onSubmit, isEditMode = false }: CustomerFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
+export function CustomerForm({
+  initialData,
+  onSubmit,
+  isEditMode = false,
+}: CustomerFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(CustomerSchema),
     defaultValues: {
       firstName: initialData?.firstName || "",
       lastName: initialData?.lastName || "",
       email: initialData?.email || "",
       phoneNumber: initialData?.phoneNumber || "",
-      idType: initialData?.idType || "national_id",
+      idType: initialData?.idType || "National Identity",
       idNumber: initialData?.idNumber || "",
       streetAddress: initialData?.streetAddress || "",
       city: initialData?.city || "",
@@ -90,26 +77,43 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
       country: initialData?.country || "",
       serviceId: initialData?.serviceId || "",
       installationDate: initialData?.installationDate || new Date(),
-      contractLength: initialData?.contractLength || 12,
+      contractLength: initialData?.contractLength || "Tidak ada",
       note: initialData?.note || "",
-      status: initialData?.status || "active",
+      status: initialData?.status || "Active",
     },
-  })
+  });
 
-  function handleSubmit(values: FormValues) {
-    setIsLoading(true)
+  async function handleSubmit(values: FormValues) {
+    setIsLoading(true);
 
     // Simulate API call
-    setTimeout(() => {
-      onSubmit(values)
-      setIsLoading(false)
-    }, 1000)
+    await onSubmit(values);
+
+    setIsLoading(false);
   }
+
+  async function fetchService() {
+    const data = await getAllData("/services");
+    setServices(data);
+  }
+
+  useEffect(() => {
+    fetchService();
+  }, []);
+
+  // useEffect(() => {
+  //   const subscription = form.watch((value) => {
+  //     console.log("Live form value", value);
+  //   });
+  //   return () => subscription.unsubscribe();
+  // }, [form.watch]);
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>{isEditMode ? "Edit Customer" : "Create New Customer"}</CardTitle>
+        <CardTitle>
+          {isEditMode ? "Edit Customer" : "Create New Customer"}
+        </CardTitle>
         <CardDescription>
           {isEditMode
             ? "Update customer information and service details."
@@ -118,7 +122,11 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-8"
+            autoComplete="off"
+          >
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,7 +137,7 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                     <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John" {...field} />
+                        <Input placeholder="John" {...field} autoFocus />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -158,7 +166,11 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="john.doe@example.com" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="john.doe@example.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -171,7 +183,7 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="+1234567890" {...field} />
+                        <Input placeholder="08123456789" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -186,16 +198,21 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>ID Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select ID type" />
+                            <SelectValue placeholder="Select a id type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="passport">Passport</SelectItem>
-                          <SelectItem value="national_id">National ID</SelectItem>
-                          <SelectItem value="driver_license">Driver's License</SelectItem>
+                          {["National Identity", "Passport"].map((dt) => (
+                            <SelectItem key={dt} value={dt}>
+                              {dt}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -302,7 +319,10 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Service Plan</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a service plan" />
@@ -310,8 +330,12 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                         </FormControl>
                         <SelectContent>
                           {services.map((service) => (
-                            <SelectItem key={service.id} value={service.id}>
-                              {service.serviceName} (${service.monthlyPrice}/month)
+                            <SelectItem
+                              key={service._id.toString()}
+                              value={service._id.toString()}
+                            >
+                              {service.serviceName} (Rp.{service.monthlyPrice}
+                              /month)
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -326,9 +350,25 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Contract Length (months)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={1} {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a contract length" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {["Tidak ada", "12 Bulan", "6 Bulan", "3 Bulan"].map(
+                            (dt) => (
+                              <SelectItem key={dt} value={dt}>
+                                {dt}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -349,10 +389,12 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                               variant={"outline"}
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground",
+                                !field.value && "text-muted-foreground"
                               )}
                             >
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              {field.value
+                                ? format(field.value, "d MMMM yyyy")
+                                : "Pick a date"}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
@@ -362,7 +404,9 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
                             initialFocus
                           />
                         </PopoverContent>
@@ -371,22 +415,28 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="status"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder="Select a contract length" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="pending">Pending</SelectItem>
+                          {["Active", "Inactive"].map((dt) => (
+                            <SelectItem key={dt} value={dt}>
+                              {dt}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -415,8 +465,8 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
             </div>
 
             <CardFooter className="flex justify-between px-0">
-              <Button variant="outline" type="button">
-                Cancel
+              <Button variant="outline" type="button" asChild>
+                <Link href={"/dashboard/customers"}>Cancel</Link>
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
@@ -433,5 +483,5 @@ export function CustomerForm({ initialData, onSubmit, isEditMode = false }: Cust
         </Form>
       </CardContent>
     </Card>
-  )
+  );
 }
