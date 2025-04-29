@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,27 +12,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
-  Pencil,
-  Eye,
-  MessageSquare,
-  Trash,
-  ArchiveRestore,
-} from "lucide-react";
+import { MoreHorizontal, Eye, RotateCcw, Trash2 } from "lucide-react";
 import { Ticket } from "@/db/schema/ticket_collection";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useState } from "react";
-import { deleteDataById } from "@/action";
-import toast from "react-hot-toast";
-import { useTicketContext } from "@/context/ticket-context";
-import { CustomError } from "@/type";
 
 export const columns: ColumnDef<Ticket>[] = [
   {
     accessorKey: "code",
     header: "Code",
+    cell: ({ row }) => {
+      return (
+        <Link
+          href={`/dashboard/tickets/deleted/${row.original.code}`}
+          className="font-medium hover:underline"
+        >
+          {row.original.code}
+        </Link>
+      );
+    },
   },
   {
     header: "Customer",
@@ -44,6 +41,16 @@ export const columns: ColumnDef<Ticket>[] = [
   {
     accessorKey: "subject",
     header: "Subject",
+    cell: ({ row }) => {
+      return (
+        <Link
+          href={`/dashboard/tickets/deleted/${row.original._id}`}
+          className="hover:underline"
+        >
+          {row.getValue("subject")}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "ticketCategory",
@@ -58,17 +65,31 @@ export const columns: ColumnDef<Ticket>[] = [
     },
   },
   {
-    accessorKey: "assignTo",
-    header: "Assigned To",
+    accessorKey: "priority",
+    header: "Priority",
+    cell: ({ row }) => {
+      const priority = row.getValue("priority") as string;
+      return (
+        <Badge
+          variant={
+            priority === "Low"
+              ? "secondary"
+              : priority === "Medium"
+              ? "blue"
+              : "destructive"
+          }
+          className="capitalize"
+        >
+          {priority}
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const logs = row.original.logs;
-      const lastLog = logs?.[logs.length - 1];
-      const status = lastLog?.status;
-
+      const status = row.getValue("status") as string;
       return (
         <Badge
           variant={
@@ -84,37 +105,19 @@ export const columns: ColumnDef<Ticket>[] = [
           }
           className="capitalize"
         >
-          {status}
+          {status.replace("-", " ")}
         </Badge>
       );
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Created At",
+    accessorKey: "deletedAt",
+    header: "Deleted At",
   },
   {
     id: "actions",
     cell: ({ row }) => {
       const ticket = row.original;
-      const router = useRouter();
-
-      const { fetchTickets } = useTicketContext();
-
-      const [isLoading, setIsLoading] = useState(false);
-
-      const handleDelete = async (id: string) => {
-        try {
-          setIsLoading(true);
-          let response = await deleteDataById(id, "/tickets");
-          toast.success(response.message);
-          await fetchTickets();
-        } catch (error) {
-          toast.error((error as CustomError).message);
-        } finally {
-          setIsLoading(false);
-        }
-      };
 
       return (
         <DropdownMenu>
@@ -134,43 +137,20 @@ export const columns: ColumnDef<Ticket>[] = [
               Copy ticket ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {ticket.status === "Open" && (
-              <DropdownMenuItem
-                onClick={() =>
-                  router.push(`/dashboard/tickets/${ticket._id}/edit`)
-                }
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-            )}
-
             <DropdownMenuItem asChild>
-              <Link href={`/dashboard/tickets/${ticket._id.toString()}`}>
+              <Link href={`/dashboard/tickets/deleted/${ticket._id}`}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>
             </DropdownMenuItem>
-
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={() => handleDelete(ticket._id.toString())}
-            >
-              {ticket.isDeleted === false ? (
-                <Trash className="mr-2 h-4 w-4" />
-              ) : (
-                <ArchiveRestore className="mr-2 h-4 w-4" />
-              )}
-              {ticket.isDeleted === false ? "Delete" : "Restore"}
-            </DropdownMenuItem>
-            {/* <DropdownMenuItem>
-              <Pencil className="mr-2 h-4 w-4" />
-              Update Status
-            </DropdownMenuItem>
             <DropdownMenuItem>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Add Log Entry
-            </DropdownMenuItem> */}
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Restore Ticket
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Permanently Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

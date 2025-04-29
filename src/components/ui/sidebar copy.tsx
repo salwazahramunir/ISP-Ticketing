@@ -16,7 +16,6 @@ import {
   Settings,
   LogOut,
   Wifi,
-  Archive,
 } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -179,6 +178,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
   const pathname = usePathname();
+
   const routes = [
     {
       label: "Dashboard",
@@ -205,19 +205,10 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
       active: pathname.includes("/dashboard/services"),
     },
     {
-      label: "Active Tickets",
+      label: "Tickets",
       icon: Ticket,
       href: "/dashboard/tickets",
-      active:
-        pathname === "/dashboard/tickets" ||
-        (pathname.startsWith("/dashboard/tickets/") &&
-          !pathname.includes("/deleted")),
-    },
-    {
-      label: "Deleted Tickets",
-      icon: Archive,
-      href: "/dashboard/tickets/deleted",
-      active: pathname.includes("/dashboard/tickets/deleted"),
+      active: pathname.includes("/dashboard/tickets"),
     },
     {
       label: "Reports",

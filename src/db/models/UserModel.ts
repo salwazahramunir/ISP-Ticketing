@@ -46,6 +46,10 @@ class UserModel {
     await this.collection().insertOne({ ...data });
   }
 
+  static async findByEmail(email: string) {
+    return await this.collection().findOne({ email });
+  }
+
   static async getAllUser() {
     const users = await this.collection()
       .find({}, { projection: { password: 0 } })

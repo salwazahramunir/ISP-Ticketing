@@ -30,7 +30,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FilterBar } from "./filter-bar";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -106,14 +105,13 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <FilterBar />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => {
-              return (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
@@ -122,10 +120,10 @@ export function DataTable<TData, TValue>({
                             header.getContext()
                           )}
                     </TableHead>
-                  ))}
-                </TableRow>
-              );
-            })}
+                  );
+                })}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (

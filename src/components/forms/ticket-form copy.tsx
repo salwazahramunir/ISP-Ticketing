@@ -65,9 +65,12 @@ export function TicketForm({
     defaultValues: {
       customerId: initialData?.customerId || "",
       ticketCategory: initialData?.ticketCategory || "",
+      assignToId: initialData?.assignToId || "",
       escalationRequired: initialData?.escalationRequired || false,
       subject: initialData?.subject || "",
       description: initialData?.description || "",
+      sla: initialData?.sla || "24 hours",
+      status: initialData?.status || "Open",
     },
   });
 
@@ -139,6 +142,133 @@ export function TicketForm({
               />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priority</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {["Low", "Medium", "High"].map((dt) => (
+                          <SelectItem key={dt} value={dt}>
+                            {dt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              /> */}
+              <AssignToCombobox control={form.control} users={users} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="sla"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SLA</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select SLA" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="4 hours">4 hours</SelectItem>
+                        <SelectItem value="8 hours">8 hours</SelectItem>
+                        <SelectItem value="24 hours">24 hours</SelectItem>
+                        <SelectItem value="48 hours">48 hours</SelectItem>
+                        <SelectItem value="72 hours">72 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Service Level Agreement response time
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={!isEditMode}
+                    >
+                      <FormControl
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm",
+                          !isEditMode
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : ""
+                        )}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {[
+                          "Open",
+                          "In Progress",
+                          "Escalated",
+                          "Done",
+                          "Closed",
+                        ].map((dt) => (
+                          <SelectItem key={dt} value={dt}>
+                            {dt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="escalationRequired"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Escalation Required</FormLabel>
+                    <FormDescription>
+                      Check this box if this ticket requires escalation to other
+                      role
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="subject"
@@ -174,29 +304,28 @@ export function TicketForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="escalationRequired"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Escalation Required</FormLabel>
+            {/* {isEditMode && (
+              <FormField
+                control={form.control}
+                name="note"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Add Log Entry</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Add a new note to the ticket log..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormDescription>
-                      Check this box if this ticket requires escalation to other
-                      role
+                      This will be added as a new entry in the ticket log
                     </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {/* <AssignToCombobox control={form.control} users={users} /> */}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )} */}
 
             <CardFooter className="flex justify-between px-0">
               <Button variant="outline" type="button" asChild>
