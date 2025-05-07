@@ -58,8 +58,20 @@ export const columns: ColumnDef<Ticket>[] = [
     },
   },
   {
-    accessorKey: "assignTo",
     header: "Assigned To",
+    cell: ({ row }) => {
+      const escalationLevel = row.original.escalationLevel;
+      const assignTo =
+        escalationLevel === 0
+          ? "-"
+          : escalationLevel === 1
+          ? "Helpdesk"
+          : escalationLevel === 2
+          ? "NOC"
+          : "Super NOC";
+
+      return <>{assignTo}</>;
+    },
   },
   {
     accessorKey: "status",
@@ -88,10 +100,6 @@ export const columns: ColumnDef<Ticket>[] = [
         </Badge>
       );
     },
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created At",
   },
   {
     id: "actions",
@@ -134,7 +142,7 @@ export const columns: ColumnDef<Ticket>[] = [
               Copy ticket ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {ticket.status === "Open" && (
+            {/* {ticket.status === "Open" && (
               <DropdownMenuItem
                 onClick={() =>
                   router.push(`/dashboard/tickets/${ticket._id}/edit`)
@@ -143,7 +151,7 @@ export const columns: ColumnDef<Ticket>[] = [
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
-            )}
+            )} */}
 
             <DropdownMenuItem asChild>
               <Link href={`/dashboard/tickets/${ticket._id.toString()}`}>
@@ -152,7 +160,7 @@ export const columns: ColumnDef<Ticket>[] = [
               </Link>
             </DropdownMenuItem>
 
-            <DropdownMenuItem
+            {/* <DropdownMenuItem
               className="text-destructive"
               onClick={() => handleDelete(ticket._id.toString())}
             >
@@ -162,14 +170,6 @@ export const columns: ColumnDef<Ticket>[] = [
                 <ArchiveRestore className="mr-2 h-4 w-4" />
               )}
               {ticket.isDeleted === false ? "Delete" : "Restore"}
-            </DropdownMenuItem>
-            {/* <DropdownMenuItem>
-              <Pencil className="mr-2 h-4 w-4" />
-              Update Status
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Add Log Entry
             </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>

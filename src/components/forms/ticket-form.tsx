@@ -35,20 +35,17 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { Customer } from "@/db/schema/customer_collection";
-import { User } from "@/db/schema/user_collection";
-import { TicketInput, TicketSchema } from "@/db/schema/ticket_collection";
 import { CustomerCombobox } from "../tickets/customer-combobox";
-import { AssignToCombobox } from "../tickets/assign-to-combobox";
-import { cn } from "@/lib/utils";
-
-type FormValues = TicketInput;
+import {
+  FormCreateSchema,
+  formCreateValue,
+} from "@/db/schema/ticket_collection";
 
 interface TicketFormProps {
-  initialData?: Partial<FormValues>;
-  onSubmit: (data: FormValues) => void;
+  initialData?: Partial<formCreateValue>;
+  onSubmit: (data: formCreateValue) => void;
   isEditMode?: boolean;
   customers?: Customer[];
-  users: User[];
 }
 
 export function TicketForm({
@@ -56,12 +53,11 @@ export function TicketForm({
   onSubmit,
   isEditMode = false,
   customers,
-  users,
 }: TicketFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(TicketSchema),
+  const form = useForm<formCreateValue>({
+    resolver: zodResolver(FormCreateSchema),
     defaultValues: {
       customerId: initialData?.customerId || "",
       ticketCategory: initialData?.ticketCategory || "",
@@ -71,7 +67,7 @@ export function TicketForm({
     },
   });
 
-  async function handleSubmit(values: FormValues) {
+  async function handleSubmit(values: formCreateValue) {
     setIsLoading(true);
 
     // Simulate API call

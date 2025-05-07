@@ -1,52 +1,51 @@
 import { WithId } from "mongodb";
 import { z } from "zod";
 
-export const LogSchema = z.object({
-  date: z.date(), // tanggal log dibuat
-  handleByUserId: z.string(), // id user login yang handle
-  handleByUsername: z.string(), // username user yang login
-  handleByUserRole: z.string(), // role user yang login
-  // approveByUserId: z.string().optional(), // id user yang di approve
-  // approveByUsername: z.string().optional(), // username user yang di approve
-  // approveByUserRole: z.string().optional(), // role user yang di assign
-  assignTo: z.string().optional(), // diisi otomatis oleh system (role yang di assign)
-  note: z.string(), // catatan apa yang sudah dilakukan
-  status: z.string().optional(), // log status
-  sla: z.string().optional(),
-  // status: z.enum(["Open", "In Progress", "Escalated", "Done", "Closed"]), // log status
+const SlaHistorySchema = z.object({
+  level: z.number(),
+  handlerRole: z.string(),
+  assignedAt: z.coerce.date(),
+  startedAt: z.coerce.date().nullable(),
+  endedAt: z.coerce.date().nullable(),
+  durationMinutes: z.number(),
+  isBreached: z.boolean(),
+  isPaused: z.boolean(),
+  closedBy: z.string().nullable(), // ObjectId sebagai string
 });
 
+const LogSchema = z.object({
+  date: z.coerce.date(),
+  handleBy: z.string(),
+  handleByUsername: z.string().nullable().optional(),
+  handleByRole: z.string().nullable().optional(),
+  assignedRole: z.string().optional(),
+  status: z.string(),
+  slaStatus: z.enum(["green", "red"]).optional(),
+  note: z.string(),
+});
+
+// schema db
 export const TicketSchema = z
   .object({
-    code: z.string().optional(),
-    customerId: z.string().min(1, { message: "Customer is required" }),
-    ticketCategory: z.string().min(1, {
-      message: "Category is required.",
-    }),
-    subject: z.string().min(1, { message: "Subject is required" }),
-    description: z.string().min(1, { message: "Description is required" }),
-    escalationRequired: z.boolean(), // belum dipake
-    assignTo: z.string().optional(), // diisi otomatis oleh system (role yang di assign)
-    status: z.string().optional(), // diisi otomatis oleh system
-    logs: z.array(LogSchema).optional(),
-    isDeleted: z.boolean().optional(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deletedAt: z.date().nullable().optional(),
-    // assignToId: z.string().min(1, {
-    //   message: "Assignee is required.",
-    // }),
-    // ticketCategory: z.enum(["Technical", "Billing", "Installation", "General"]),
-    // priority: z.enum(["Low", "Medium", "High"]),
-    // sla: z.enum([
-    //   "1 hours",
-    //   "2 hours",
-    //   "4 hours",
-    //   "8 hours",
-    //   "24 hours",
-    //   "48 hours",
-    //   "72 hours",
-    // ]),
+    code: z.string(), //
+    subject: z.string(), //
+    description: z.string(), //
+    ticketCategory: z.string(), //
+    customerId: z.string(), //
+    createdBy: z.string(), //
+    createdAt: z.coerce.date().optional(), //
+    updatedAt: z.coerce.date().optional(), //
+    isDeleted: z.boolean().optional().optional(), //
+    deletedAt: z.coerce.date().nullable().optional(), //
+
+    status: z.string(), //
+    currentHandlerId: z.string(),
+
+    escalationRequired: z.boolean(), //
+    escalationLevel: z.number(), //
+
+    slaHistory: z.array(SlaHistorySchema),
+    logs: z.array(LogSchema),
   })
   .transform((data) => ({
     ...data,
@@ -58,13 +57,35 @@ export const TicketSchema = z
 
 export type TicketInput = z.input<typeof TicketSchema>; // input: data sebelum transform
 export type TicketOutput = z.infer<typeof TicketSchema>; // output: hasil setelah transform
-export type Log = z.infer<typeof LogSchema>;
 
-type Customer = {
+type CustomerData = {
   firstName: string;
   lastName: string;
+  idType: string;
+  idNumber: string;
+};
+
+type CurrentHandleUserData = {
+  username: string;
+  role: string;
 };
 
 export type Ticket = WithId<TicketOutput> & {
-  customerData: Customer;
+  customerData: CustomerData;
+} & {
+  currentHandleUserData: CurrentHandleUserData;
 };
+
+// schema form
+export const FormCreateSchema = z.object({
+  customerId: z.string().min(1, { message: "Customer is required" }),
+  ticketCategory: z.string().min(1, { message: "Category is required" }),
+  escalationRequired: z.boolean(),
+  subject: z.string().min(1, { message: "Subject is required" }),
+  description: z.string().min(1, { message: "description is required" }),
+});
+
+export type formCreateValue = z.infer<typeof FormCreateSchema>;
+
+export type Log = z.infer<typeof LogSchema>;
+export type Sla = z.infer<typeof SlaHistorySchema>;

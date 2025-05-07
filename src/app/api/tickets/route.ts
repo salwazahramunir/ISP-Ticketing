@@ -1,5 +1,4 @@
 import TicketModel from "@/db/models/TicketModel";
-import { TicketInput } from "@/db/schema/ticket_collection";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
 import { NextRequest } from "next/server";
@@ -19,7 +18,7 @@ export async function POST(request: NextRequest) {
     const userId = request.headers.get("x-user-id") as string;
     const body = await request.json();
 
-    const input: TicketInput = {
+    const input: any = {
       customerId: body.customerId,
       ticketCategory: body.ticketCategory,
       escalationRequired: body.escalationRequired,

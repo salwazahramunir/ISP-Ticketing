@@ -11,7 +11,6 @@ import toast from "react-hot-toast";
 
 export default function NewTicketPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
@@ -44,15 +43,11 @@ export default function NewTicketPage() {
   async function fetchData() {
     try {
       let customersData = await getAllData("/customers");
-      setCustomers(customersData);
 
-      let usersData = await getAllData("/users");
-      // filter hanya user active dan bukan admin untuk assign ticket
-      const supportUsers = usersData.filter(
-        (user: User) => user.status === "Active" && user.role !== "Admin"
+      const filterActiveCustomer = customersData.filter(
+        (customer: any) => customer.status === "Active"
       );
-
-      setUsers(supportUsers);
+      setCustomers(filterActiveCustomer);
     } catch (error) {
       console.log(error, "ini error form ticket");
     } finally {
@@ -72,11 +67,7 @@ export default function NewTicketPage() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <TicketForm
-          customers={customers}
-          users={users}
-          onSubmit={handleSubmit}
-        />
+        <TicketForm customers={customers} onSubmit={handleSubmit} />
       )}
     </div>
   );

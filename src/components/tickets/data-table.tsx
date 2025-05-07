@@ -48,6 +48,15 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
+
+  type Ticket = {
+    subject: string;
+    code: string;
+    customerData?: {
+      firstName?: string;
+    };
+  };
 
   const table = useReactTable({
     data,
@@ -60,11 +69,27 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
+    },
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const value = filterValue.toLowerCase();
+      const original = row.original as Ticket;
+
+      const subject = original.subject?.toLowerCase() ?? "";
+      const code = original.code?.toLowerCase() ?? "";
+      const customer = original.customerData?.firstName?.toLowerCase() ?? "";
+
+      return (
+        subject.includes(value) ||
+        code.includes(value) ||
+        customer.includes(value)
+      );
     },
   });
 
@@ -72,11 +97,9 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter tickets..."
-          value={(table.getColumn("subject")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("subject")?.setFilterValue(event.target.value)
-          }
+          placeholder="Search by subject, code, or customer..."
+          value={globalFilter}
+          onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
         <DropdownMenu>

@@ -34,6 +34,8 @@ import {
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Logo } from "@/components/logo";
+import { logout } from "@/action";
+import { useProfileContext } from "@/context/profile-context";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -179,6 +181,8 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
   const pathname = usePathname();
+  const { profile } = useProfileContext();
+
   const routes = [
     {
       label: "Dashboard",
@@ -186,52 +190,50 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
       href: "/dashboard",
       active: pathname === "/dashboard",
     },
-    {
-      label: "Users",
-      icon: UserCog,
-      href: "/dashboard/users",
-      active: pathname.includes("/dashboard/users"),
-    },
-    {
-      label: "Customers",
-      icon: Users,
-      href: "/dashboard/customers",
-      active: pathname.includes("/dashboard/customers"),
-    },
-    {
-      label: "Services",
-      icon: Wifi,
-      href: "/dashboard/services",
-      active: pathname.includes("/dashboard/services"),
-    },
-    {
-      label: "Active Tickets",
-      icon: Ticket,
-      href: "/dashboard/tickets",
-      active:
-        pathname === "/dashboard/tickets" ||
-        (pathname.startsWith("/dashboard/tickets/") &&
-          !pathname.includes("/deleted")),
-    },
-    {
-      label: "Deleted Tickets",
-      icon: Archive,
-      href: "/dashboard/tickets/deleted",
-      active: pathname.includes("/dashboard/tickets/deleted"),
-    },
-    {
-      label: "Reports",
-      icon: BarChart3,
-      href: "/dashboard/reports",
-      active: pathname.includes("/dashboard/reports"),
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/dashboard/settings",
-      active: pathname.includes("/dashboard/settings"),
-    },
   ];
+
+  if (profile?.role === "Admin" || profile?.role === "CS FTTH") {
+    routes.push(
+      {
+        label: "Customers",
+        icon: Users,
+        href: "/dashboard/customers",
+        active: pathname.includes("/dashboard/customers"),
+      },
+      {
+        label: "Services",
+        icon: Wifi,
+        href: "/dashboard/services",
+        active: pathname.includes("/dashboard/services"),
+      },
+      {
+        label: "Active Tickets",
+        icon: Ticket,
+        href: "/dashboard/tickets",
+        active:
+          pathname === "/dashboard/tickets" ||
+          (pathname.startsWith("/dashboard/tickets/") &&
+            !pathname.includes("/deleted")),
+      }
+    );
+
+    if (profile.role === "Admin") {
+      routes.push(
+        {
+          label: "Users",
+          icon: UserCog,
+          href: "/dashboard/users",
+          active: pathname.includes("/dashboard/users"),
+        },
+        {
+          label: "Reports",
+          icon: BarChart3,
+          href: "/dashboard/reports",
+          active: pathname.includes("/dashboard/reports"),
+        }
+      );
+    }
+  }
 
   return (
     <>
@@ -282,10 +284,10 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
             )}
             asChild
           >
-            <Link href="/">
+            <Button className="hover:text-black" onClick={logout}>
               <LogOut className="h-5 w-5" />
               {isOpen && <span>Logout</span>}
-            </Link>
+            </Button>
           </Button>
         </div>
       </aside>

@@ -19,10 +19,13 @@ import { useTicketContext } from "@/context/ticket-context";
 import { Log, Ticket } from "@/db/schema/ticket_collection";
 import { useProfileContext } from "@/context/profile-context";
 import { updateStatusTicket } from "@/action";
+import SlaCountdown from "../tickets/count-down-sla";
+import { useRouter } from "next/navigation";
 
 export default function NocDashboardPage() {
   const { tickets: initialTickets, fetchTickets } = useTicketContext();
   const { profile } = useProfileContext();
+  const router = useRouter();
 
   // let lastLog = initialTickets[0].logs[initialTickets[0].logs.length - 1];
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -44,7 +47,6 @@ export default function NocDashboardPage() {
   // Handle ticket status change
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     setIsLoading(true);
-    console.log(newStatus, "status");
 
     let path = `/tickets/${ticketId}`;
 
@@ -57,24 +59,6 @@ export default function NocDashboardPage() {
     await updateStatusTicket({ status: newStatus }, path);
 
     setIsLoading(false);
-    // setTickets(
-    //   tickets.map((ticket) => {
-    //     if (ticket._id.toString() === ticketId) {
-    //       const updatedTicket = {
-    //         ...ticket,
-    //         status: newStatus,
-    //         assignTo: "NOC Team",
-    //       };
-    //       // Show toast notification
-    //       toast({
-    //         title: `Ticket ${ticketId} status updated`,
-    //         description: `Status changed to ${newStatus}`,
-    //       });
-    //       return updatedTicket;
-    //     }
-    //     return ticket;
-    //   })
-    // );
   };
 
   // Simulate refresh
@@ -97,96 +81,44 @@ export default function NocDashboardPage() {
       case "Escalated":
         return <Badge variant="default">Open</Badge>;
       case "In Progress":
-        return <Badge variant="secondary">In Progress</Badge>;
-    }
-  };
-
-  // Get SLA status
-  const getSlaStatus = (ticket: any) => {
-    const lastLog = ticket.logs[ticket.logs.length - 1];
-
-    if (!ticket?.logs?.length || !lastLog.sla) {
-      return (
-        <Badge variant="outline" className="flex items-center gap-1">
-          <Clock className="h-3 w-3" /> No SLA Data
-        </Badge>
-      );
-    }
-
-    const lastLogDate = new Date(lastLog.date);
-    const now = new Date();
-
-    const diffMinutes = (now.getTime() - lastLogDate.getTime()) / (1000 * 60);
-
-    if (diffMinutes > parseInt(ticket.sla)) {
-      return (
-        <Badge variant="destructive" className="flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" /> SLA Breach
-        </Badge>
-      );
-    } else {
-      return (
-        <Badge variant="outline" className="flex items-center gap-1">
-          <Clock className="h-3 w-3" /> In SLA
-        </Badge>
-      );
+        return <Badge variant="yellow">In Progress</Badge>;
     }
   };
 
   // render button
   const renderStatusButton = (ticket: Ticket, lastLog: Log | undefined) => {
-    if (lastLog?.status === "Escalated") {
+    if (ticket.status === "Escalated") {
       return (
         <Button
           size="sm"
-          onClick={() =>
-            handleStatusChange(ticket._id.toString(), "In Progress")
-          }
+          onClick={async () => {
+            await handleStatusChange(ticket._id.toString(), "Started");
+            router.refresh();
+          }}
         >
           Start Working
         </Button>
       );
+    } else if (ticket.status === "Started") {
+      return (
+        <Button variant="outline" size="sm" asChild>
+          <a href={`/dashboard/tickets/${ticket._id}`}>View Details</a>
+        </Button>
+      );
     }
-
-    if (lastLog?.status === "In Progress") {
-      const elapsedTime =
-        new Date().getTime() - new Date(lastLog.date).getTime();
-      let minutes = lastLog.sla?.split(" ")[0];
-      const slaInMs = Number(minutes) * 60 * 1000;
-
-      if (elapsedTime > slaInMs) {
-        return (
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() =>
-              handleStatusChange(ticket._id.toString(), "Escalated")
-            }
-          >
-            Escalate
-          </Button>
-        );
-      } else {
-        return (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleStatusChange(ticket._id.toString(), "Done")}
-          >
-            Mark Resolved
-          </Button>
-        );
-      }
-    }
-
     return null;
   };
 
   useEffect(() => {
     if (initialTickets.length) {
-      const filterTicket = initialTickets.filter(
-        (ticket) => ticket.assignTo === profile?.role // hardcode dulu
-      );
+      const filterTicket = initialTickets.filter((ticket) => {
+        let escalationLevel = ticket.slaHistory[ticket.slaHistory.length - 1];
+
+        return (
+          ticket.status !== "Done" &&
+          escalationLevel.handlerRole === profile?.role
+        );
+      });
 
       setTickets(filterTicket);
     }
@@ -194,9 +126,6 @@ export default function NocDashboardPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p>
-        Nama: {profile?.username} ({profile?.role})
-      </p>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">
@@ -247,7 +176,8 @@ export default function NocDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {tickets.map((ticket) => {
                 const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
-
+                const lastSla =
+                  ticket.slaHistory?.[ticket.slaHistory.length - 1];
                 return (
                   <Card
                     key={ticket._id.toString()}
@@ -282,7 +212,10 @@ export default function NocDashboardPage() {
                               {ticket.customerData?.firstName}
                             </span>
                           </span>
-                          {getSlaStatus(ticket)}
+                          <SlaCountdown
+                            assignedAt={lastSla?.assignedAt ?? new Date()}
+                            durationMinutes={lastSla?.durationMinutes ?? 0}
+                          />
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>
@@ -300,12 +233,7 @@ export default function NocDashboardPage() {
                         </div>
                       </div>
                     </CardContent>
-                    <CardFooter className="flex justify-between pt-0">
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={`/dashboard/tickets/${ticket._id}`}>
-                          View Details
-                        </a>
-                      </Button>
+                    <CardFooter className="pt-0">
                       {renderStatusButton(ticket, lastLog)}
                     </CardFooter>
                   </Card>
@@ -315,7 +243,7 @@ export default function NocDashboardPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="open" className="space-y-4">
+        {/* <TabsContent value="open" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {tickets
               .filter((ticket) => {
@@ -476,9 +404,8 @@ export default function NocDashboardPage() {
                 return null; // Kembalikan null jika statusnya bukan "In Progress"
               })
               .filter(Boolean)}{" "}
-            {/* Pastikan null tidak dirender */}
           </div>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

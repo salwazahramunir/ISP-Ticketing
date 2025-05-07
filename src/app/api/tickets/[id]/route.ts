@@ -24,58 +24,23 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { id } = await params;
-
-    if (!ObjectId.isValid(id)) {
-      Response.json({ message: `Invalid ID` }, { status: 400 });
-    }
-
-    const body = await request.json();
-
-    const input: TicketInput = {
-      customerId: body.customerId,
-      ticketCategory: body.ticketCategory,
-      escalationRequired: body.escalationRequired,
-      subject: body.subject,
-      description: body.description,
-    };
-
-    let result = await TicketModel.update(input, id);
-
-    return Response.json(
-      { message: `Successfully update ticket with code: ${result.code}` },
-      { status: 200 }
-    );
-  } catch (error) {
-    return customError(error as CustomError);
-  }
-}
-
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = await params;
-
-    let result = await TicketModel.delete(id);
-
-    let text = result.isDeleted ? "delete" : "restore";
-
-    return Response.json(
-      {
-        message: `Successfully ${text} ticket with code: ${result.code}`,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    return customError(error as CustomError);
-  }
+  // try {
+  //   const { id } = await params;
+  //   let result = await TicketModel.delete(id);
+  //   let text = result.isDeleted ? "delete" : "restore";
+  //   return Response.json(
+  //     {
+  //       message: `Successfully ${text} ticket with code: ${result.code}`,
+  //     },
+  //     { status: 200 }
+  //   );
+  // } catch (error) {
+  //   return customError(error as CustomError);
+  // }
 }
 
 export async function PATCH(
@@ -91,8 +56,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-
-    let ticket = await TicketModel.updateStatus(body.status, id, userId);
+    let ticket = await TicketModel.updateStatus(body, id, userId);
 
     return Response.json(
       {

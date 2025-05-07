@@ -1,5 +1,6 @@
 "use server";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const getAllData = async (path: string) => {
   try {
@@ -109,4 +110,15 @@ export const setCookies = async (data: any) => {
     maxAge: 60 * 60 * 24 * 7, // 1 week
     path: "/",
   });
+};
+
+export const logout = async () => {
+  const cookieStore = await cookies();
+
+  // Hapus semua cookie yang ada
+  for (const cookie of cookieStore.getAll()) {
+    cookieStore.delete(cookie.name);
+  }
+
+  redirect("/login");
 };

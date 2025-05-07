@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { User, Users } from "lucide-react";
+import { AlertTriangle, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Log } from "@/db/schema/ticket_collection";
 
@@ -25,16 +25,16 @@ export function TicketLogTimeline({ logs }: TicketLogTimelineProps) {
   // Get status badge variant
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "open":
+      case "Open":
+        return "blue";
+      case "In Progress":
+        return "yellow";
+      case "Done":
         return "default";
-      case "in progress":
-        return "secondary";
-      case "done":
-        return "outline";
-      case "escalated":
+      case "Escalated":
         return "destructive";
       default:
-        return "outline";
+        return "blue";
     }
   };
 
@@ -70,13 +70,24 @@ export function TicketLogTimeline({ logs }: TicketLogTimelineProps) {
                   >
                     {log.status}
                   </Badge>
+                  {log.slaStatus === "red" && (
+                    <Badge
+                      variant={"outline"}
+                      className="capitalize text-red-600"
+                    >
+                      <span className="flex items-center gap-1 text-red-600">
+                        <AlertTriangle className="h-4 w-4" />
+                        SLA Breached
+                      </span>
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-3.5 w-3.5" />
                   <span>
                     <span className="font-medium">{log.handleByUsername}</span>{" "}
-                    ({log.handleByUserRole})
+                    ({log.handleByRole})
                   </span>
                 </div>
 

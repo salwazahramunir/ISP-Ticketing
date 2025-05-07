@@ -75,7 +75,6 @@ export default function EditTicketPage() {
       ) : (
         <TicketForm
           initialData={ticket}
-          users={users}
           customers={customers}
           onSubmit={handleSubmit}
           isEditMode
