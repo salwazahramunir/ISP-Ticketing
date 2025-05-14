@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Ticket, Wifi, Clock } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Ticket, Wifi, Clock } from "lucide-react";
 
 export function DashboardStats() {
   return (
@@ -31,12 +31,16 @@ export function DashboardStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">8</div>
-          <p className="text-xs text-muted-foreground">+2 new services this month</p>
+          <p className="text-xs text-muted-foreground">
+            +2 new services this month
+          </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Avg. Resolution Time</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Avg. Resolution Time
+          </CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -45,5 +49,5 @@ export function DashboardStats() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

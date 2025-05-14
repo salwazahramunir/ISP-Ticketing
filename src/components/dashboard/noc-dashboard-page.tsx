@@ -99,7 +99,7 @@ export default function NocDashboardPage() {
           Start Working
         </Button>
       );
-    } else if (ticket.status === "Started") {
+    } else if (ticket.status === "Started" || ticket.status === "In Progress") {
       return (
         <Button variant="outline" size="sm" asChild>
           <a href={`/dashboard/tickets/${ticket._id}`}>View Details</a>

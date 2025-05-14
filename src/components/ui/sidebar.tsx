@@ -190,6 +190,15 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
       href: "/dashboard",
       active: pathname === "/dashboard",
     },
+    {
+      label: "Active Tickets",
+      icon: Ticket,
+      href: "/dashboard/tickets",
+      active:
+        pathname === "/dashboard/tickets" ||
+        (pathname.startsWith("/dashboard/tickets/") &&
+          !pathname.includes("/deleted")),
+    },
   ];
 
   if (profile?.role === "Admin" || profile?.role === "CS FTTH") {
@@ -205,15 +214,6 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
         icon: Wifi,
         href: "/dashboard/services",
         active: pathname.includes("/dashboard/services"),
-      },
-      {
-        label: "Active Tickets",
-        icon: Ticket,
-        href: "/dashboard/tickets",
-        active:
-          pathname === "/dashboard/tickets" ||
-          (pathname.startsWith("/dashboard/tickets/") &&
-            !pathname.includes("/deleted")),
       }
     );
 

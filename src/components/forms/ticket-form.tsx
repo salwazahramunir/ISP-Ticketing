@@ -117,12 +117,7 @@ export function TicketForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {[
-                          "Technical",
-                          "Billing",
-                          "Installation",
-                          "General",
-                        ].map((dt) => (
+                        {["Request & Activation", "Complaint"].map((dt) => (
                           <SelectItem key={dt} value={dt}>
                             {dt}
                           </SelectItem>

@@ -77,14 +77,14 @@ export const columns: ColumnDef<Ticket>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const logs = row.original.logs;
-      const lastLog = logs?.[logs.length - 1];
-      const status = lastLog?.status;
+      const status = row.original.status;
+      // const lastLog = logs?.[logs.length - 1];
+      // const status = lastLog?.status;
 
       return (
         <Badge
           variant={
-            status === "Open"
+            status === "Started"
               ? "blue"
               : status === "In Progress"
               ? "yellow"
