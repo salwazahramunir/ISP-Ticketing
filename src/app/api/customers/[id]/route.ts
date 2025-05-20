@@ -7,12 +7,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params?: { id?: string } }
 ) {
   try {
-    const { id } = params;
+    const id = context?.params?.id;
 
-    if (!ObjectId.isValid(id)) {
+    if (!id || !ObjectId.isValid(id)) {
       return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
     }
 
