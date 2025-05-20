@@ -65,6 +65,8 @@ export function LoginForm() {
 
       router.push("/dashboard");
     } catch (error) {
+      console.log(error, "<<<");
+
       toast.error((error as CustomError).message);
     } finally {
       setIsLoading(false);
