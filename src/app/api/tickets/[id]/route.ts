@@ -3,7 +3,7 @@ import { TicketInput } from "@/db/schema/ticket_collection";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
 import { ObjectId } from "mongodb";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
@@ -13,12 +13,12 @@ export async function GET(
     const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
-      Response.json({ message: `Invalid ID` }, { status: 400 });
+      return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
     }
 
     let service = await TicketModel.getTicketById(id);
 
-    return Response.json(service);
+    return NextResponse.json(service);
   } catch (error) {
     return customError(error as CustomError);
   }
@@ -32,7 +32,7 @@ export async function DELETE(
   //   const { id } = await params;
   //   let result = await TicketModel.delete(id);
   //   let text = result.isDeleted ? "delete" : "restore";
-  //   return Response.json(
+  //   return NextResponse.json(
   //     {
   //       message: `Successfully ${text} ticket with code: ${result.code}`,
   //     },
@@ -52,13 +52,13 @@ export async function PATCH(
     const userId = request.headers.get("x-user-id") as string;
 
     if (!ObjectId.isValid(id)) {
-      Response.json({ message: `Invalid ID` }, { status: 400 });
+      return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
     }
 
     const body = await request.json();
     let ticket = await TicketModel.updateStatus(body, id, userId);
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: `Successfully update status ticket with code: ${ticket.code}`,
       },

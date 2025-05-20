@@ -2,7 +2,7 @@ import ServiceModel from "@/db/models/ServiceModel";
 import { ServiceInput } from "@/db/schema/service_collection";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +13,7 @@ export async function GET(
 
     let service = await ServiceModel.getServiceById(slug);
 
-    return Response.json(service);
+    return NextResponse.json(service);
   } catch (error) {
     return customError(error as CustomError);
   }
@@ -37,7 +37,7 @@ export async function PUT(
 
     let result = await ServiceModel.update(input, slug);
 
-    return Response.json(
+    return NextResponse.json(
       { message: `Successfully update service: ${result.serviceName}` },
       { status: 201 }
     );
@@ -57,7 +57,7 @@ export async function DELETE(
 
     let text = result.isDeleted ? "delete" : "restore";
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: `Successfully ${text} service with service name: ${result.serviceName}`,
       },

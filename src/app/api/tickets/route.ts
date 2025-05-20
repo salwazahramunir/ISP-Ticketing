@@ -1,13 +1,13 @@
 import TicketModel from "@/db/models/TicketModel";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
   try {
     const tickets = await TicketModel.getAllTicket();
 
-    return Response.json(tickets);
+    return NextResponse.json(tickets);
   } catch (error) {
     return customError(error as CustomError);
   }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     let ticket = await TicketModel.create(input, userId);
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: `Successfully create a new ticket with code: ${ticket.code}`,
       },

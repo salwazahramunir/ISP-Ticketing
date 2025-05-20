@@ -3,7 +3,7 @@ import { CustomerInput } from "@/db/schema/customer_collection";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
 import { ObjectId } from "mongodb";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
@@ -13,12 +13,12 @@ export async function GET(
     const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
-      Response.json({ message: `Invalid ID` }, { status: 400 });
+      return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
     }
 
     let customer = await CustomerModel.getCustomerById(id);
 
-    return Response.json(customer);
+    return NextResponse.json(customer);
   } catch (error) {
     return customError(error as CustomError);
   }
@@ -32,7 +32,7 @@ export async function PUT(
     const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
-      Response.json({ message: `Invalid ID` }, { status: 400 });
+      return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
     }
 
     const body = await request.json();
@@ -58,7 +58,7 @@ export async function PUT(
 
     let result = await CustomerModel.update(input, id);
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: `Successfully update customer with name: ${result.firstName}`,
       },
@@ -77,14 +77,14 @@ export async function DELETE(
     const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
-      Response.json({ message: `Invalid ID` }, { status: 400 });
+      return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
     }
 
     let result = await CustomerModel.delete(id);
 
     let text = result.isDeleted ? "delete" : "restore";
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: `Successfully ${text} customer with name: ${result.firstName}`,
       },

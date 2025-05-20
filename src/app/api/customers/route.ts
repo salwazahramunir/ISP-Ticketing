@@ -2,7 +2,7 @@ import CustomerModel from "@/db/models/CustomerModel";
 import { CustomerInput } from "@/db/schema/customer_collection";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     await CustomerModel.create(input);
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: `Successfully create a new customer with name: ${input.firstName}`,
       },
@@ -44,7 +44,7 @@ export async function GET() {
   try {
     const customers = await CustomerModel.getAllCustomer();
 
-    return Response.json(customers);
+    return NextResponse.json(customers);
   } catch (error) {
     return customError(error as CustomError);
   }

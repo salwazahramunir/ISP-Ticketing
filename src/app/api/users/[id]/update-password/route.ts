@@ -2,7 +2,7 @@ import UserModel from "@/db/models/UserModel";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
 import { ObjectId } from "mongodb";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   request: NextRequest,
@@ -12,14 +12,14 @@ export async function PUT(
     const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
-      Response.json({ message: `Invalid ID` }, { status: 400 });
+      return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
     }
 
     const body = await request.json();
 
     let result = await UserModel.updatePassword(body, id);
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: `Successfully update password user with email: ${result.email}`,
       },

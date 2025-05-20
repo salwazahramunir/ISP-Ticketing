@@ -1,7 +1,7 @@
 import UserModel from "@/db/models/UserModel";
 import { customError } from "@/helpers/customError";
 import { CustomError } from "@/type";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     let profile = await UserModel.findByEmail(email);
 
-    return Response.json(profile);
+    return NextResponse.json(profile);
   } catch (error) {
     return customError(error as CustomError);
   }

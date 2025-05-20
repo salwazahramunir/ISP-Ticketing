@@ -4,6 +4,7 @@ import { customError } from "@/helpers/customError";
 import { signToken } from "@/helpers/jwt";
 import { CustomError } from "@/type";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     cookieStore.set("authorization", `Bearer ${access_token}`);
 
-    return Response.json(
+    return NextResponse.json(
       { message: "Successfully login", access_token },
       { status: 200 }
     );
