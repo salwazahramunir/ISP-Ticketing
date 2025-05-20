@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
@@ -29,7 +29,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
@@ -74,7 +74,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
