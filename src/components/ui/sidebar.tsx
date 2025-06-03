@@ -17,6 +17,7 @@ import {
   LogOut,
   Wifi,
   Archive,
+  Timer,
 } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -230,6 +231,12 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
           icon: BarChart3,
           href: "/dashboard/reports",
           active: pathname.includes("/dashboard/reports"),
+        },
+        {
+          label: "SLA",
+          icon: Timer,
+          href: "/dashboard/sla",
+          active: pathname.includes("/dashboard/sla"),
         }
       );
     }
