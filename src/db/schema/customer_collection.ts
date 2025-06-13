@@ -1,12 +1,16 @@
 import { WithId } from "mongodb";
 import { z } from "zod";
 
-const validIdType = ["National Identity", "Passport"] as const;
 const validStatus = ["Active", "Inactive"] as const;
 const validContract = ["12 Bulan", "6 Bulan", "3 Bulan", "Tidak ada"] as const;
 
 export const CustomerSchema = z
   .object({
+    customerType: z
+      .string()
+      .min(1, { message: "Customer type must be at least 1 characters" }),
+    cid: z.string().optional(),
+    count: z.number().optional(),
     firstName: z
       .string()
       .min(3, { message: "First name must be at least 3 characters long" }),
@@ -15,25 +19,33 @@ export const CustomerSchema = z
     phoneNumber: z
       .string()
       .min(12, { message: "Phone number must be at least 12 characters long" }),
-    idType: z.enum(validIdType, {
-      required_error: "ID type is required",
-      invalid_type_error: "ID type harus berupa string",
-    }),
-    idNumber: z.string().min(1, { message: "ID number is required" }),
+    idType: z.string().optional(),
+    idNumber: z.string().optional(),
     streetAddress: z.string().min(1, { message: "Street address is required" }),
     city: z.string().min(1, { message: "City is required" }),
     province: z.string().min(1, { message: "Province is required" }),
     postalCode: z.string().min(1, { message: "Postal code is required" }),
     country: z.string().min(1, { message: "Country is required" }),
     serviceId: z.string().min(1, { message: "Service is required" }),
-    installationDate: z.preprocess((val) => {
-      if (typeof val === "string") {
-        const [year, month, day] = val.split("T")[0].split("-");
+    // installationDate: z.preprocess((val) => {
+    //   if (typeof val === "string") {
+    //     const [year, month, day] = val.split("T")[0].split("-");
 
-        return new Date(Number(year), Number(month) - 1, Number(day));
-      }
-      return val;
-    }, z.date()),
+    //     return new Date(Number(year), Number(month) - 1, Number(day));
+    //   }
+    //   return val;
+    // }, z.date()),
+    installationDate: z.preprocess(
+      (val) => {
+        if (typeof val === "string" || typeof val === "number") {
+          return new Date(val);
+        }
+        return val;
+      },
+      z.date({
+        required_error: "Installation date is required",
+      })
+    ),
     contractLength: z.enum(validContract, {
       required_error: "Contract length is required",
       invalid_type_error: "Contract length harus berupa string",
@@ -43,6 +55,12 @@ export const CustomerSchema = z
       required_error: "Status is required",
       invalid_type_error: "Status harus berupa string",
     }),
+    companyName: z.string().optional(),
+    npwp: z.string().optional(),
+    vlan: z.string().optional(),
+    nib: z.string().optional(),
+    site: z.string().optional(),
+    deviceSN: z.string().optional(),
     isDeleted: z.boolean().optional(),
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),

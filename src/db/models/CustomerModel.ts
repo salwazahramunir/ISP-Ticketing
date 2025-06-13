@@ -12,13 +12,40 @@ class CustomerModel {
   }
 
   static async create(input: CustomerInput) {
+    // jika input customerType adalah Dedicated
+    if (input.customerType === "Dedicated") {
+      const customers = await this.getAllCustomer();
+
+      // filter hanya ambil customerType dedicated, karena countnya mau bertambah kalau create customer Dedicated
+      const customerDedicated = customers.filter(
+        (el) => el.customerType === "Dedicated"
+      );
+
+      let count = !customerDedicated.length
+        ? 1
+        : customerDedicated[customerDedicated.length - 1].count + 1;
+
+      input.count = count;
+
+      const date = new Date();
+      const formattedDateDefault = date.toLocaleDateString();
+
+      input.cid = `IMD-${count}-${formattedDateDefault.split("/").join("")}`;
+    }
+
     const data = CustomerSchema.parse(input);
 
-    const customer = await this.collection().findOne({
-      idNumber: data.idNumber,
-    });
-    if (customer) {
-      throw { message: "ID number already exists", status: 400 };
+    // cek jika idNumber dari input tidak kosong
+    if (input.idNumber !== "") {
+      // find ke database ada idNumber yang sama atau tidak
+      const customer = await this.collection().findOne({
+        idNumber: data.idNumber,
+      });
+
+      // jika ada, throw error
+      if (customer) {
+        throw { message: "ID number already exists", status: 400 };
+      }
     }
 
     await this.collection().insertOne({ ...data });
@@ -80,6 +107,8 @@ class CustomerModel {
   }
 
   static async update(input: CustomerInput, id: string) {
+    console.log(input, "ini input");
+
     const customer = await this.collection()
       .find({ _id: new ObjectId(id) })
       .toArray();
@@ -91,16 +120,21 @@ class CustomerModel {
       };
     }
 
+    input.updatedAt = new Date();
+
     const data = CustomerSchema.parse(input);
 
-    if (data.idNumber) {
-      const existingCustomer = await this.collection().findOne({
-        idNumber: data.idNumber,
-        _id: { $ne: new ObjectId(id) }, // pastikan bukan customer ini sendiri
-      });
+    // validasi jika idNumber tidak kosong, cek apakah ada idNumber yang sama atau tidak
+    if (data.idNumber !== "") {
+      if (data.idNumber) {
+        const existingCustomer = await this.collection().findOne({
+          idNumber: data.idNumber,
+          _id: { $ne: new ObjectId(id) }, // pastikan bukan customer ini sendiri
+        });
 
-      if (existingCustomer) {
-        throw { message: "ID Number already in use", status: 400 };
+        if (existingCustomer) {
+          throw { message: "ID Number already in use", status: 400 };
+        }
       }
     }
 

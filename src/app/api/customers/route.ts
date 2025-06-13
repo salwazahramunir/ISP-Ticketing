@@ -9,6 +9,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const input: CustomerInput = {
+      customerType: body.customerType,
+      cid: body.cid,
       firstName: body.firstName,
       lastName: body.lastName ?? "",
       email: body.email ?? "",
@@ -27,11 +29,21 @@ export async function POST(request: NextRequest) {
       status: body.status,
     };
 
+    if (input.customerType === "Dedicated") {
+      input.companyName = body.companyName;
+      input.npwp = body.npwp;
+      input.vlan = body.vlan;
+      input.nib = body.nib;
+    } else if (input.customerType === "FTTH") {
+      input.site = body.site;
+      input.deviceSN = body.deviceSN;
+    }
+
     await CustomerModel.create(input);
 
     return NextResponse.json(
       {
-        message: `Successfully create a new customer with name: ${input.firstName}`,
+        message: `Successfully create a new customer with name: ${body.firstName}`,
       },
       { status: 201 }
     );

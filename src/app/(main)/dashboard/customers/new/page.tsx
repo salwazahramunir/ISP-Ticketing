@@ -23,12 +23,14 @@ export default function NewCustomerPage() {
         throw await response.json();
       }
 
-      let service = await response.json();
+      let customer = await response.json();
 
       router.push("/dashboard/customers");
 
-      toast.success(service.message);
+      toast.success(customer.message);
     } catch (error) {
+      console.log(error, "<<<");
+
       toast.error((error as CustomError).message);
     }
   };

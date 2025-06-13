@@ -28,10 +28,10 @@ import toast from "react-hot-toast";
 import { CustomError } from "@/type";
 
 export const columns: ColumnDef<Customer>[] = [
-  // {
-  //   accessorKey: "id",
-  //   header: "ID",
-  // },
+  {
+    accessorKey: "cid",
+    header: "CID",
+  },
   {
     accessorKey: "firstName",
     header: "First Name",
@@ -120,7 +120,7 @@ export const columns: ColumnDef<Customer>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() =>
-                navigator.clipboard.writeText(customer._id.toString())
+                navigator.clipboard.writeText(customer.cid as string)
               }
             >
               Copy customer ID
@@ -136,10 +136,10 @@ export const columns: ColumnDef<Customer>[] = [
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                {/* <DropdownMenuItem>
                   <Ticket className="mr-2 h-4 w-4" />
                   Create Ticket
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </>
             )}
 

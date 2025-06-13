@@ -7,10 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  context: { params?: { id?: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context?.params?.id;
+    const { id } = await context.params; // tunggu promise-nya
 
     if (!id || !ObjectId.isValid(id)) {
       return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
@@ -26,10 +26,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params; // tunggu promise-nya
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
@@ -38,6 +38,7 @@ export async function PUT(
     const body = await request.json();
 
     const input: CustomerInput = {
+      customerType: body.customerType,
       firstName: body.firstName,
       lastName: body.lastName ?? "",
       email: body.email ?? "",
@@ -56,6 +57,16 @@ export async function PUT(
       status: body.status,
     };
 
+    if (input.customerType === "Dedicated") {
+      input.companyName = body.companyName;
+      input.npwp = body.npwp;
+      input.vlan = body.vlan;
+      input.nib = body.nib;
+    } else if (input.customerType === "FTTH") {
+      input.site = body.site;
+      input.deviceSN = body.deviceSN;
+    }
+
     let result = await CustomerModel.update(input, id);
 
     return NextResponse.json(
@@ -65,16 +76,18 @@ export async function PUT(
       { status: 200 }
     );
   } catch (error) {
+    console.log(error, "ini err");
+
     return customError(error as CustomError);
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params; // tunggu promise-nya
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: `Invalid ID` }, { status: 400 });

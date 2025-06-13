@@ -64,11 +64,13 @@ export function CustomerForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(CustomerSchema),
     defaultValues: {
+      customerType: initialData?.customerType || "",
+      cid: initialData?.cid || "",
       firstName: initialData?.firstName || "",
       lastName: initialData?.lastName || "",
       email: initialData?.email || "",
       phoneNumber: initialData?.phoneNumber || "",
-      idType: initialData?.idType || "National Identity",
+      idType: initialData?.idType || "none",
       idNumber: initialData?.idNumber || "",
       streetAddress: initialData?.streetAddress || "",
       city: initialData?.city || "",
@@ -76,12 +78,20 @@ export function CustomerForm({
       postalCode: initialData?.postalCode || "",
       country: initialData?.country || "",
       serviceId: initialData?.serviceId || "",
-      installationDate: initialData?.installationDate || new Date(),
+      installationDate: initialData?.installationDate ?? new Date(),
       contractLength: initialData?.contractLength || "Tidak ada",
       note: initialData?.note || "",
       status: initialData?.status || "Active",
+      companyName: initialData?.companyName || "",
+      npwp: initialData?.npwp || "",
+      vlan: initialData?.vlan || "",
+      nib: initialData?.nib || "",
+      site: initialData?.site || "",
+      deviceSN: initialData?.deviceSN || "",
     },
   });
+
+  let customerType: string = form.watch("customerType");
 
   async function handleSubmit(values: FormValues) {
     setIsLoading(true);
@@ -100,14 +110,6 @@ export function CustomerForm({
   useEffect(() => {
     fetchService();
   }, []);
-
-  // useEffect(() => {
-  //   const subscription = form.watch((value) => {
-  //     console.log("Live form value", value);
-  //   });
-  //   return () => subscription.unsubscribe();
-  // }, [form.watch]);
-
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
@@ -129,6 +131,55 @@ export function CustomerForm({
           >
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Personal Information</h3>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <FormField
+                    control={form.control}
+                    name="customerType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Customer Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl autoFocus>
+                            <SelectTrigger disabled={isEditMode}>
+                              <SelectValue placeholder="Select a customer type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {["Dedicated", "FTTH"].map((dt) => (
+                              <SelectItem key={dt} value={dt}>
+                                {dt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {customerType === "FTTH" && (
+                  <div className="flex-1">
+                    <FormField
+                      control={form.control}
+                      name="cid"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Customer ID (CID)</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={isEditMode} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -137,7 +188,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John" {...field} autoFocus />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -150,7 +201,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>Last Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Doe" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -166,11 +217,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="john.doe@example.com"
-                          {...field}
-                        />
+                        <Input type="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -183,7 +230,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="08123456789" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -208,6 +255,7 @@ export function CustomerForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
                           {["National Identity", "Passport"].map((dt) => (
                             <SelectItem key={dt} value={dt}>
                               {dt}
@@ -226,7 +274,12 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>ID Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="ID12345678" {...field} />
+                        <Input
+                          {...field}
+                          disabled={
+                            form.watch("idType") !== "none" ? false : true
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -234,6 +287,103 @@ export function CustomerForm({
                 />
               </div>
             </div>
+
+            {customerType === "Dedicated" && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Additional Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="companyName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="npwp"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>NPWP</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="vlan"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>VLAN</FormLabel>
+                        <FormControl>
+                          <Input type="text" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="nib"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>NIB</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
+            {customerType === "FTTH" && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Additional Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="site"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Site</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deviceSN"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Device Serial Number</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Address Information</h3>
@@ -244,7 +394,7 @@ export function CustomerForm({
                   <FormItem>
                     <FormLabel>Street Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="123 Main St" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -259,7 +409,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>City</FormLabel>
                       <FormControl>
-                        <Input placeholder="Anytown" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -272,7 +422,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>Province/State</FormLabel>
                       <FormControl>
-                        <Input placeholder="State" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -288,7 +438,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>Postal Code</FormLabel>
                       <FormControl>
-                        <Input placeholder="12345" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -301,7 +451,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>Country</FormLabel>
                       <FormControl>
-                        <Input placeholder="USA" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -428,7 +578,7 @@ export function CustomerForm({
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a contract length" />
+                            <SelectValue placeholder="Select a status" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -452,11 +602,7 @@ export function CustomerForm({
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Additional information about the customer..."
-                        className="resize-none"
-                        {...field}
-                      />
+                      <Textarea className="resize-none" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
