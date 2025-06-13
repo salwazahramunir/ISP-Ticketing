@@ -18,6 +18,7 @@ import {
   Wifi,
   Archive,
   Timer,
+  Table,
 } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -233,11 +234,17 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
           active: pathname.includes("/dashboard/reports"),
         },
         {
-          label: "SLA",
-          icon: Timer,
-          href: "/dashboard/sla",
-          active: pathname.includes("/dashboard/sla"),
+          label: "Category",
+          icon: Table,
+          href: "/dashboard/categories",
+          active: pathname.includes("/dashboard/categories"),
         }
+        // {
+        //   label: "SLA",
+        //   icon: Timer,
+        //   href: "/dashboard/sla",
+        //   active: pathname.includes("/dashboard/sla"),
+        // }
       );
     }
   }
