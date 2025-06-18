@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,14 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
@@ -40,12 +31,16 @@ import {
   FormCreateSchema,
   formCreateValue,
 } from "@/db/schema/ticket_collection";
+import { Category } from "@/db/schema/category_collection";
+import { CategoryCombobox } from "../tickets/category-combobox";
+import { ViewCustomerModal } from "../customers/ViewCustomerModal";
 
 interface TicketFormProps {
   initialData?: Partial<formCreateValue>;
   onSubmit: (data: formCreateValue) => void;
   isEditMode?: boolean;
   customers?: Customer[];
+  categories: Category[];
 }
 
 export function TicketForm({
@@ -53,6 +48,7 @@ export function TicketForm({
   onSubmit,
   isEditMode = false,
   customers,
+  categories,
 }: TicketFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -60,12 +56,14 @@ export function TicketForm({
     resolver: zodResolver(FormCreateSchema),
     defaultValues: {
       customerId: initialData?.customerId || "",
-      ticketCategory: initialData?.ticketCategory || "",
+      categoryId: initialData?.categoryId || "",
       escalationRequired: initialData?.escalationRequired || false,
-      subject: initialData?.subject || "",
+      // subject: initialData?.subject || "",
       description: initialData?.description || "",
     },
   });
+
+  let customerId: string = form.watch("customerId");
 
   async function handleSubmit(values: formCreateValue) {
     setIsLoading(true);
@@ -101,7 +99,13 @@ export function TicketForm({
                 customers={customers}
               />
 
-              <FormField
+              <CategoryCombobox
+                isEditMode={isEditMode}
+                control={form.control}
+                categories={categories}
+              />
+
+              {/* <FormField
                 control={form.control}
                 name="ticketCategory"
                 render={({ field }) => (
@@ -117,7 +121,7 @@ export function TicketForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {["Request & Activation", "Complaint"].map((dt) => (
+                        {categories.map((dt) => (
                           <SelectItem key={dt} value={dt}>
                             {dt}
                           </SelectItem>
@@ -127,10 +131,28 @@ export function TicketForm({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
             </div>
 
-            <FormField
+            {customerId && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-md">Customer View</CardTitle>
+                  <CardDescription>
+                    Click the button below to view customer details in a modal
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ViewCustomerModal
+                    customer={customers?.find(
+                      (el) => el._id.toString() === customerId
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* <FormField
               control={form.control}
               name="subject"
               render={({ field }) => (
@@ -145,7 +167,7 @@ export function TicketForm({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             <FormField
               control={form.control}

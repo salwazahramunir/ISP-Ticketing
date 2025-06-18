@@ -4,6 +4,25 @@ import { CustomError } from "@/type";
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = await params;
+
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ message: `Invalid ID` }, { status: 400 });
+    }
+
+    let result = await CategoryModel.getCategoryById(id);
+
+    return NextResponse.json(result);
+  } catch (error) {
+    return customError(error as CustomError);
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }

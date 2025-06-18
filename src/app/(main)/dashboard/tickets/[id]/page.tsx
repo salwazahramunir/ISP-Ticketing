@@ -160,7 +160,7 @@ export default function TicketDetailsPage() {
                     </Badge>
                   </div>
                   <CardTitle className="mt-2 text-xl">
-                    {ticketData?.subject}
+                    {ticketData?.ticketCategory}
                   </CardTitle>
                   <CardDescription className="mt-1 flex items-center gap-1">
                     <Tag className="h-3.5 w-3.5" />
@@ -255,10 +255,10 @@ export default function TicketDetailsPage() {
                           <Tag className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <p className="text-sm font-medium">
-                              ID Number ({ticketData?.customerData.idType})
+                              ID Number (CID)
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {ticketData?.customerData.idNumber}
+                              {ticketData?.customerData.cid}
                             </p>
                           </div>
                         </div>

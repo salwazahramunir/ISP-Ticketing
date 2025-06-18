@@ -10,6 +10,7 @@ import {
 } from "../schema/ticket_collection";
 import { ObjectId } from "mongodb";
 import UserModel from "./UserModel";
+import CategoryModel from "./CategoryModel";
 
 class TicketModel {
   static collection() {
@@ -37,6 +38,7 @@ class TicketModel {
                   lastName: 1,
                   idNumber: 1,
                   idType: 1,
+                  cid: 1,
                 },
               },
             ],
@@ -57,6 +59,7 @@ class TicketModel {
                     lastName: "$customerData.lastName", // rename atau ambil field spesifik
                     idType: "$customerData.idType", // rename atau ambil field spesifik
                     idNumber: "$customerData.idNumber", // rename atau ambil field spesifik
+                    cid: "$customerData.cid", // rename atau ambil field spesifik
                   },
                 },
               ],
@@ -120,6 +123,7 @@ class TicketModel {
                   lastName: 1,
                   idNumber: 1,
                   idType: 1,
+                  cid: 1,
                 },
               },
             ],
@@ -140,6 +144,7 @@ class TicketModel {
                     lastName: "$customerData.lastName",
                     idType: "$customerData.idType",
                     idNumber: "$customerData.idNumber",
+                    cid: "$customerData.cid",
                   },
                 },
               ],
@@ -181,6 +186,9 @@ class TicketModel {
     let code = `TKT-` + (await generateRandomCode());
 
     const userHandle = await UserModel.getUserById(userId);
+    const selectedCategory = await CategoryModel.getCategoryById(
+      body.categoryId
+    );
 
     // jika eskalasi maka buat logSla
     let sla: Sla = {
@@ -189,7 +197,7 @@ class TicketModel {
       assignedAt: new Date(), // tanggal ticket di assign ke role tsb
       startedAt: null, // tanggal ticket dikerjakan oleh role tsb, akan muncul data ketika sudah start working oleh helpdesk
       endedAt: null, // tanggal ticket selesai dikerjakan oleh role tsb, akan muncul endedAt ketika sudah ticket selesai (closed atau escalated) di level ini
-      durationMinutes: 2,
+      durationMinutes: parseInt(selectedCategory.times),
       isBreached: false, // apakah melewati sla atau tidak, false jika tidak melebihi waktu dan true jika melebihi waktu
       isPaused: false, // apakah pause atau tidak, jika mengerjakan ticket lain yang urgent, false jika tidak dan true jika iya
       closedBy: "", // id dari user yang menyelesaikan ticket di tahap ini, akan muncul data ketika ticket sudah ditutup oleh helpdesk
@@ -208,6 +216,7 @@ class TicketModel {
 
     let input: TicketInput = {
       ...body,
+      ticketCategory: selectedCategory.category,
       code,
       createdBy: userId,
       status: body.escalationRequired ? "Escalated" : "Done",
@@ -335,6 +344,10 @@ class TicketModel {
       const lengthSlaHistory = ticket.slaHistory.length;
       const level = lengthSlaHistory + 1;
 
+      const selectedCategory = await CategoryModel.getCategoryById(
+        ticket.categoryId
+      );
+
       const newSla = {
         level,
         // handlerRole: level === 2 ? "NOC" : "Super NOC",
@@ -342,7 +355,7 @@ class TicketModel {
         assignedAt: new Date(),
         startedAt: null,
         endedAt: null,
-        durationMinutes: 2,
+        durationMinutes: parseInt(selectedCategory.times),
         isBreached: false,
         isPaused: false,
         closedBy: "",

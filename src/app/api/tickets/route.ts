@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const input: any = {
       customerId: body.customerId,
-      ticketCategory: body.ticketCategory,
+      categoryId: body.categoryId,
       escalationRequired: body.escalationRequired,
       subject: body.subject,
       description: body.description,

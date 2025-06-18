@@ -28,9 +28,10 @@ const LogSchema = z.object({
 export const TicketSchema = z
   .object({
     code: z.string(), //
-    subject: z.string(), //
+    // subject: z.string(), //
     description: z.string(), //
-    ticketCategory: z.string(), //
+    categoryId: z.string(), //
+    ticketCategory: z.string(),
     customerId: z.string(), //
     createdBy: z.string(), //
     createdAt: z.coerce.date().optional(), //
@@ -63,6 +64,7 @@ type CustomerData = {
   lastName: string;
   idType: string;
   idNumber: string;
+  cid: string;
 };
 
 type CurrentHandleUserData = {
@@ -79,9 +81,9 @@ export type Ticket = WithId<TicketOutput> & {
 // schema form
 export const FormCreateSchema = z.object({
   customerId: z.string().min(1, { message: "Customer is required" }),
-  ticketCategory: z.string().min(1, { message: "Category is required" }),
+  categoryId: z.string().min(1, { message: "Category is required" }),
   escalationRequired: z.boolean(),
-  subject: z.string().min(1, { message: "Subject is required" }),
+  // subject: z.string().min(1, { message: "Subject is required" }),
   description: z.string().min(1, { message: "description is required" }),
 });
 

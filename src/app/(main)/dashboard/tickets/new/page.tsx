@@ -2,6 +2,7 @@
 
 import { getAllData } from "@/action";
 import { TicketForm } from "@/components/forms/ticket-form";
+import { Category } from "@/db/schema/category_collection";
 import { Customer } from "@/db/schema/customer_collection";
 import { User } from "@/db/schema/user_collection";
 import { CustomError } from "@/type";
@@ -11,6 +12,7 @@ import toast from "react-hot-toast";
 
 export default function NewTicketPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
@@ -47,6 +49,13 @@ export default function NewTicketPage() {
       const filterActiveCustomer = customersData.filter(
         (customer: any) => customer.status === "Active"
       );
+
+      let categoriesData = await getAllData("/categories");
+      const filterCategory = categoriesData.filter(
+        (category: any) => category.isDeleted === false
+      );
+
+      setCategories(filterCategory);
       setCustomers(filterActiveCustomer);
     } catch (error) {
       console.log(error, "ini error form ticket");
@@ -67,7 +76,11 @@ export default function NewTicketPage() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <TicketForm customers={customers} onSubmit={handleSubmit} />
+        <TicketForm
+          customers={customers}
+          categories={categories}
+          onSubmit={handleSubmit}
+        />
       )}
     </div>
   );

@@ -42,10 +42,6 @@ export const columns: ColumnDef<Ticket>[] = [
     },
   },
   {
-    accessorKey: "subject",
-    header: "Subject",
-  },
-  {
     accessorKey: "ticketCategory",
     header: "Category",
     cell: ({ row }) => {

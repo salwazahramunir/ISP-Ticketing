@@ -2,6 +2,7 @@
 
 import { getAllData, getDataById } from "@/action";
 import { TicketForm } from "@/components/forms/ticket-form";
+import { Category } from "@/db/schema/category_collection";
 import { Customer } from "@/db/schema/customer_collection";
 import { User } from "@/db/schema/user_collection";
 import { CustomError } from "@/type";
@@ -16,6 +17,7 @@ export default function EditTicketPage() {
   const [ticket, setTicket] = useState({});
   const [users, setUsers] = useState<User[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const router = useRouter();
 
@@ -33,6 +35,13 @@ export default function EditTicketPage() {
     );
 
     setUsers(supportUsers);
+
+    let categoriesData = await getAllData("/categories");
+    const filterCategory = categoriesData.filter(
+      (category: any) => category.isDeleted === false
+    );
+
+    setCategories(filterCategory);
   }
 
   const handleSubmit = async (input: any) => {
@@ -76,6 +85,7 @@ export default function EditTicketPage() {
         <TicketForm
           initialData={ticket}
           customers={customers}
+          categories={categories}
           onSubmit={handleSubmit}
           isEditMode
         />

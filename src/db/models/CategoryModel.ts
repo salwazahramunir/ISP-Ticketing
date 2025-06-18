@@ -11,6 +11,22 @@ class CategoryModel {
     return await this.collection().find().toArray();
   }
 
+  static async getCategoryById(id: string) {
+    const category = await this.collection()
+      .find({ _id: new ObjectId(id), isDeleted: false })
+      .toArray();
+
+    if (!category) {
+      throw {
+        message: "Category not found or already deleted",
+        status: 400,
+      };
+    }
+    console.log(category, ">>>");
+
+    return category[0];
+  }
+
   static async create(input: CategoryInput) {
     const data = CategorySchema.parse(input);
 
