@@ -192,8 +192,8 @@ class TicketModel {
 
     // jika eskalasi maka buat logSla
     let sla: Sla = {
-      level: 1, // level dari sla => 1: Helpdesk, 2: NOC, 3: Super NOC
-      handlerRole: "Helpdesk", // pasti ke helpdesk, karena ketika eskalasi create ticket diawal pasti ke Helpdesk
+      level: userHandle.role === "Helpdesk" ? 2 : 1, // level dari sla => 1: Helpdesk, 2: NOC, 3: Super NOC, jika role yang bikin ticket helpdesk maka level 2, jika CS FTTH atau admin maka 1
+      handlerRole: userHandle.role === "Helpdesk" ? "NOC" : "Helpdesk", // role user yang di assign. jika role yang bikin ticket helpdesk maka ketika ticket escalate akan ke NOC, jika CS FTTH atau admin maka ke helpdesk
       assignedAt: new Date(), // tanggal ticket di assign ke role tsb
       startedAt: null, // tanggal ticket dikerjakan oleh role tsb, akan muncul data ketika sudah start working oleh helpdesk
       endedAt: null, // tanggal ticket selesai dikerjakan oleh role tsb, akan muncul endedAt ketika sudah ticket selesai (closed atau escalated) di level ini
@@ -205,12 +205,19 @@ class TicketModel {
 
     let log: Log = {
       date: new Date(), // tanggal log ditambahkan
-      // action: "created", // aksi yang dilakukan
       handleBy: userId, // user yang membuat log (user login)
-      assignedRole: body.escalationRequired ? "Helpdesk" : "-", // assign tugas ke role ["Helpdesk", "NOC", "Super NOC"]
+      assignedRole: body.escalationRequired
+        ? userHandle.role === "Helpdesk"
+          ? "NOC"
+          : "Helpdesk"
+        : "-", // assign tugas ke role ["Helpdesk", "NOC", "Super NOC"]
       status: body.escalationRequired ? "Escalated" : "Done",
       note: body.escalationRequired
-        ? `Ticket created by ${userHandle.username} (${userHandle.role}) and assigned to Helpdesk`
+        ? `Ticket created by ${userHandle.username} (${
+            userHandle.role
+          }) and assigned to ${
+            userHandle.role === "Helpdesk" ? "NOC" : "Helpdesk"
+          }`
         : `Ticket created and completed by ${userHandle.username} (${userHandle.role})`,
     };
 
@@ -221,7 +228,11 @@ class TicketModel {
       createdBy: userId,
       status: body.escalationRequired ? "Escalated" : "Done",
       currentHandlerId: userId,
-      escalationLevel: body.escalationRequired ? 1 : 0,
+      escalationLevel: body.escalationRequired
+        ? userHandle.role === "Helpdesk"
+          ? 2
+          : 1
+        : 0,
       slaHistory: body.escalationRequired ? [sla] : [],
       logs: [log],
     };
@@ -340,9 +351,8 @@ class TicketModel {
     };
 
     //jika status escalated dan terakhir bisa eskalasi ke super NOC
-    if (body.status === "Escalated" && ticket.slaHistory.length < 3) {
-      const lengthSlaHistory = ticket.slaHistory.length;
-      const level = lengthSlaHistory + 1;
+    if (body.status === "Escalated" && lastSla.level < 3) {
+      const level = lastSla.level + 1;
 
       const selectedCategory = await CategoryModel.getCategoryById(
         ticket.categoryId
@@ -365,7 +375,7 @@ class TicketModel {
         { _id: new ObjectId(id) },
         {
           $set: {
-            escalationLevel: ticket.slaHistory.length + 1,
+            escalationLevel: lastSla.level + 1,
           },
           $push: {
             slaHistory: newSla,

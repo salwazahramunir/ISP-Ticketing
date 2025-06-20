@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw, Clock, AlertCircle } from "lucide-react";
+import { Search, RefreshCw, Clock, AlertCircle, Loader2 } from "lucide-react";
 // import { tickets as initialTickets } from "@/components/tickets/data";
 import { toast } from "@/hooks/use-toast";
 import { useTicketContext } from "@/context/ticket-context";
@@ -29,20 +29,29 @@ export default function NocDashboardPage() {
 
   // let lastLog = initialTickets[0].logs[initialTickets[0].logs.length - 1];
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [filterTickets, setFilterTickets] = useState<Ticket[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
   // Filter tickets based on search query
-  const filteredTickets = tickets.filter(
-    (ticket) =>
-      ticket.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.customerData.firstName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-  );
+  const searchTickets = (search: string) => {
+    // setSearchQuery(search);
+    if (search !== "") {
+      const filteredTickets = tickets.filter(
+        (ticket) =>
+          ticket.code?.toLowerCase().includes(search.toLowerCase()) ||
+          ticket.ticketCategory.toLowerCase().includes(search.toLowerCase()) ||
+          ticket.customerData.firstName
+            .toLowerCase()
+            .includes(search.toLowerCase())
+      );
+      setFilterTickets(filteredTickets);
+    } else {
+      setFilterTickets(tickets);
+    }
+  };
 
   // Handle ticket status change
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
@@ -54,9 +63,8 @@ export default function NocDashboardPage() {
       path += `/escalate`;
     }
 
-    console.log(path, "<<<<");
-
     await updateStatusTicket({ status: newStatus }, path);
+    await fetchTickets();
 
     setIsLoading(false);
   };
@@ -91,12 +99,19 @@ export default function NocDashboardPage() {
       return (
         <Button
           size="sm"
+          disabled={isLoading}
           onClick={async () => {
             await handleStatusChange(ticket._id.toString(), "Started");
-            router.refresh();
           }}
         >
-          Start Working
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="animate-spin w-4 h-4" />
+              Loading...
+            </span>
+          ) : (
+            "Start Working"
+          )}
         </Button>
       );
     } else if (ticket.status === "Started" || ticket.status === "In Progress") {
@@ -121,6 +136,7 @@ export default function NocDashboardPage() {
       });
 
       setTickets(filterTicket);
+      setFilterTickets(filterTicket);
     }
   }, [initialTickets]);
 
@@ -152,8 +168,8 @@ export default function NocDashboardPage() {
             type="search"
             placeholder="Search tickets..."
             className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            // value={searchQuery}
+            onChange={(e) => searchTickets(e.target.value)}
           />
         </div>
       </div>
@@ -166,7 +182,7 @@ export default function NocDashboardPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {tickets.length === 0 ? (
+          {filterTickets.length === 0 ? (
             <div className="text-center py-10 border rounded-lg">
               <p className="text-muted-foreground">
                 No tickets found matching your criteria
@@ -174,7 +190,7 @@ export default function NocDashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tickets.map((ticket) => {
+              {filterTickets.map((ticket) => {
                 const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
                 const lastSla =
                   ticket.slaHistory?.[ticket.slaHistory.length - 1];
@@ -184,7 +200,7 @@ export default function NocDashboardPage() {
                     className={
                       lastLog?.status === "Escalated"
                         ? "border-l-4 border-l-blue-500"
-                        : ""
+                        : "border-l-4 border-l-yellow-400"
                     }
                   >
                     <CardHeader className="pb-2">
@@ -200,7 +216,7 @@ export default function NocDashboardPage() {
                     <CardContent>
                       <div className="space-y-3">
                         <div>
-                          <p className="font-medium">{ticket.subject}</p>
+                          <p className="font-medium">{ticket.ticketCategory}</p>
                           <p className="text-sm text-muted-foreground truncate">
                             {ticket.description}
                           </p>
@@ -243,111 +259,49 @@ export default function NocDashboardPage() {
           )}
         </TabsContent>
 
-        {/* <TabsContent value="open" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tickets
-              .filter((ticket) => {
-                const lastLog = ticket.logs?.[ticket.logs.length - 1];
-                return lastLog?.status === "Escalated"; // filter berdasarkan status masing-masing ticket "Escalated" (Open)
-              })
-              .map((ticket) => {
-                const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil lagi buat dipakai di card
-
-                return (
-                  <Card
-                    key={ticket._id.toString()}
-                    className="border-l-4 border-l-blue-500"
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{ticket.code}</CardTitle>
-                        <div className="flex gap-2">
-                          {lastLog && getStatusBadge(lastLog.status as string)}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="font-medium">{ticket.subject}</p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {ticket.description}
-                          </p>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>
-                            Customer:{" "}
-                            <span className="font-medium">
-                              {ticket.customerData?.firstName}
-                            </span>
-                          </span>
-                          {getSlaStatus(ticket)}
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>
-                            Category:{" "}
-                            <span className="font-medium capitalize">
-                              {ticket.ticketCategory}
-                            </span>
-                          </span>
-                          <span>
-                            Created:{" "}
-                            <span className="font-medium">
-                              {new Date(ticket.createdAt).toLocaleDateString()}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between pt-0">
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={`/dashboard/tickets/${ticket._id}`}>
-                          View Details
-                        </a>
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          handleStatusChange(
-                            ticket._id.toString(),
-                            "In Progress"
-                          )
-                        }
-                      >
-                        Start Working
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                );
-              })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="in-progress" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTickets
-              .map((ticket) => {
-                // Ambil log terakhir dari setiap ticket
-                const lastLog = ticket.logs?.[ticket.logs.length - 1];
-
-                // Pastikan lastLog ada dan statusnya adalah "In Progress"
-                if (lastLog?.status === "In Progress") {
+        <TabsContent value="open" className="space-y-4">
+          {filterTickets.filter((el) => el.status === "Escalated").length ===
+          0 ? (
+            <div className="text-center py-10 border rounded-lg">
+              <p className="text-muted-foreground">
+                No tickets found matching your criteria
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterTickets
+                .filter((el) => el.status === "Escalated")
+                .map((ticket) => {
+                  const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
+                  const lastSla =
+                    ticket.slaHistory?.[ticket.slaHistory.length - 1];
                   return (
-                    <Card key={ticket._id.toString()}>
+                    <Card
+                      key={ticket._id.toString()}
+                      className={
+                        lastLog?.status === "Escalated"
+                          ? "border-l-4 border-l-blue-500"
+                          : ""
+                      }
+                    >
                       <CardHeader className="pb-2">
                         <div className="flex justify-between items-start">
                           <CardTitle className="text-lg">
                             {ticket.code}
                           </CardTitle>
                           <div className="flex gap-2">
-                            {getStatusBadge(lastLog.status as string)}
+                            {lastLog
+                              ? getStatusBadge(lastLog.status as string)
+                              : null}
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
                           <div>
-                            <p className="font-medium">{ticket.subject}</p>
+                            <p className="font-medium">
+                              {ticket.ticketCategory}
+                            </p>
                             <p className="text-sm text-muted-foreground truncate">
                               {ticket.description}
                             </p>
@@ -356,16 +310,19 @@ export default function NocDashboardPage() {
                             <span>
                               Customer:{" "}
                               <span className="font-medium">
-                                {ticket.customerData.firstName}
+                                {ticket.customerData?.firstName}
                               </span>
                             </span>
-                            {getSlaStatus(ticket)}
+                            <SlaCountdown
+                              assignedAt={lastSla?.assignedAt ?? new Date()}
+                              durationMinutes={lastSla?.durationMinutes ?? 0}
+                            />
                           </div>
                           <div className="flex justify-between text-sm">
                             <span>
-                              Assigned:{" "}
-                              <span className="font-medium">
-                                {lastLog.assignTo}
+                              Category:{" "}
+                              <span className="font-medium capitalize">
+                                {ticket.ticketCategory}
                               </span>
                             </span>
                             <span>
@@ -379,33 +336,102 @@ export default function NocDashboardPage() {
                           </div>
                         </div>
                       </CardContent>
-                      <CardFooter className="flex justify-between pt-0">
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={`/dashboard/tickets/${ticket._id}`}>
-                            View Details
-                          </a>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleStatusChange(
-                              ticket._id.toString(),
-                              "Resolved"
-                            )
-                          }
-                        >
-                          Mark Resolved
-                        </Button>
+                      <CardFooter className="pt-0">
+                        {renderStatusButton(ticket, lastLog)}
                       </CardFooter>
                     </Card>
                   );
-                }
-                return null; // Kembalikan null jika statusnya bukan "In Progress"
-              })
-              .filter(Boolean)}{" "}
-          </div>
-        </TabsContent> */}
+                })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="in-progress" className="space-y-4">
+          {filterTickets.filter((el) => el.status === "Started").length ===
+          0 ? (
+            <div className="text-center py-10 border rounded-lg">
+              <p className="text-muted-foreground">
+                No tickets found matching your criteria
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterTickets
+                .filter((el) => el.status === "Started")
+                .map((ticket) => {
+                  const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
+                  const lastSla =
+                    ticket.slaHistory?.[ticket.slaHistory.length - 1];
+                  return (
+                    <Card
+                      key={ticket._id.toString()}
+                      className={
+                        lastLog?.status === "Started"
+                          ? "border-l-4 border-l-yellow-400"
+                          : ""
+                      }
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg">
+                            {ticket.code}
+                          </CardTitle>
+                          <div className="flex gap-2">
+                            {lastLog
+                              ? getStatusBadge(lastLog.status as string)
+                              : null}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="font-medium">
+                              {ticket.ticketCategory}
+                            </p>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {ticket.description}
+                            </p>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>
+                              Customer:{" "}
+                              <span className="font-medium">
+                                {ticket.customerData?.firstName}
+                              </span>
+                            </span>
+                            <SlaCountdown
+                              assignedAt={lastSla?.assignedAt ?? new Date()}
+                              durationMinutes={lastSla?.durationMinutes ?? 0}
+                            />
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>
+                              Category:{" "}
+                              <span className="font-medium capitalize">
+                                {ticket.ticketCategory}
+                              </span>
+                            </span>
+                            <span>
+                              Created:{" "}
+                              <span className="font-medium">
+                                {new Date(
+                                  ticket.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0">
+                        {renderStatusButton(ticket, lastLog)}
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
     </div>
   );

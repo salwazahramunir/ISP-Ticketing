@@ -272,9 +272,7 @@ export default function TicketDetailsPage() {
                         {/* Add Note */}
                         <Card>
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-base">
-                              Add Note
-                            </CardTitle>
+                            <CardTitle className="text-base">Submit</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <form

@@ -222,7 +222,8 @@ export function TicketForm({
                     {isEditMode ? "Updating..." : "Creating..."}
                   </>
                 ) : (
-                  <>{isEditMode ? "Update Ticket" : "Create Ticket"}</>
+                  <>Submit</>
+                  // <>{isEditMode ? "Update Ticket" : "Create Ticket"}</>
                 )}
               </Button>
             </CardFooter>
