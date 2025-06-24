@@ -11,7 +11,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname?.startsWith("/dashboard/tickets") ||
     request.nextUrl.pathname?.startsWith("/dashboard/users") ||
     request.nextUrl.pathname?.startsWith("/dashboard/customers") ||
-    request.nextUrl.pathname?.startsWith("/dashboard/services")
+    request.nextUrl.pathname?.startsWith("/dashboard/services") ||
+    request.nextUrl.pathname?.startsWith("/dashboard/news")
   ) {
     if (!authorization) {
       return NextResponse.redirect(new URL("/login", request.url)); // Kalau belum login, arahkan ke halaman login
@@ -30,7 +31,9 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname?.startsWith("/api/users") ||
     request.nextUrl.pathname?.startsWith("/api/customers") ||
     request.nextUrl.pathname?.startsWith("/api/tickets") ||
-    request.nextUrl.pathname?.startsWith("/api/profile")
+    request.nextUrl.pathname?.startsWith("/api/profile") ||
+    (request.nextUrl.pathname?.startsWith("/api/news") &&
+      ["POST", "PUT", "PATCH", "DELETE"].includes(request.method))
   ) {
     if (!authorization) {
       return Response.json({ message: "Please login first!" }, { status: 401 });
@@ -71,6 +74,7 @@ export const config = {
     "/api/users/(.)*",
     "/api/tickets/(.)*",
     "/api/profile/(.)*",
+    "/api/news/(.)*",
     "/login",
     "/dashboard",
     "/dashboard/tickets",

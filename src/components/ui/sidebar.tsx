@@ -19,6 +19,7 @@ import {
   Archive,
   Timer,
   Table,
+  NewspaperIcon,
 } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -238,6 +239,12 @@ export function Sidebar({ isOpen, onToggle, className }: SidebarProps) {
           icon: Table,
           href: "/dashboard/categories",
           active: pathname.includes("/dashboard/categories"),
+        },
+        {
+          label: "News",
+          icon: NewspaperIcon,
+          href: "/dashboard/news",
+          active: pathname.includes("/dashboard/news"),
         }
         // {
         //   label: "SLA",

@@ -75,7 +75,11 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        autoComplete="off"
+        className="space-y-6"
+      >
         <FormField
           control={form.control}
           name="email"
@@ -83,7 +87,12 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
+                <Input
+                  type="email"
+                  autoFocus
+                  placeholder="Enter your email"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

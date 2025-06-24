@@ -40,10 +40,7 @@ export default function CategoryContentPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Category</h2>
         <Button asChild>
-          <Button
-            onClick={() => setCreateModalOpen(true)}
-            disabled={categories.length === 5 ? true : false}
-          >
+          <Button onClick={() => setCreateModalOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Category
           </Button>
