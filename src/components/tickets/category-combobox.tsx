@@ -78,7 +78,7 @@ export const CategoryCombobox: React.FC<Props> = ({
                         }}
                         className="flex w-full items-center justify-between px-2 py-1 text-sm hover:bg-gray-100 rounded-md"
                       >
-                        <span>{category.category}</span>
+                        <span>{`${category.category} (${category.times} minutes)`}</span>
                         {field.value === category._id && (
                           <Check className="h-4 w-4 text-green-500" />
                         )}

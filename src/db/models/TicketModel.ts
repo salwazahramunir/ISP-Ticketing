@@ -18,12 +18,63 @@ class TicketModel {
   }
 
   static async getAllTicket() {
+    // const tickets = await this.collection()
+    //   .aggregate([
+    //     {
+    //       $lookup: {
+    //         from: "customers",
+    //         let: { customerIdStr: "$customerId" }, // ambil customerId string dari customer
+    //         pipeline: [
+    //           {
+    //             $match: {
+    //               $expr: {
+    //                 $eq: ["$_id", { $toObjectId: "$$customerIdStr" }],
+    //               },
+    //             },
+    //           },
+    //           {
+    //             $project: {
+    //               firstName: 1, // ambil field yang diperlukan aja
+    //               lastName: 1,
+    //               idNumber: 1,
+    //               idType: 1,
+    //               cid: 1,
+    //             },
+    //           },
+    //         ],
+    //         as: "customerData",
+    //       },
+    //     },
+    //     {
+    //       $unwind: "$customerData",
+    //     },
+    //     {
+    //       $replaceRoot: {
+    //         newRoot: {
+    //           $mergeObjects: [
+    //             "$$ROOT",
+    //             {
+    //               customerData: {
+    //                 firstName: "$customerData.firstName", // rename atau ambil field spesifik
+    //                 lastName: "$customerData.lastName", // rename atau ambil field spesifik
+    //                 idType: "$customerData.idType", // rename atau ambil field spesifik
+    //                 idNumber: "$customerData.idNumber", // rename atau ambil field spesifik
+    //                 cid: "$customerData.cid", // rename atau ambil field spesifik
+    //               },
+    //             },
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   ])
+    //   .toArray();
+
     const tickets = await this.collection()
       .aggregate([
         {
           $lookup: {
             from: "customers",
-            let: { customerIdStr: "$customerId" }, // ambil customerId string dari customer
+            let: { customerIdStr: "$customerId" },
             pipeline: [
               {
                 $match: {
@@ -34,7 +85,7 @@ class TicketModel {
               },
               {
                 $project: {
-                  firstName: 1, // ambil field yang diperlukan aja
+                  firstName: 1,
                   lastName: 1,
                   idNumber: 1,
                   idType: 1,
@@ -45,9 +96,8 @@ class TicketModel {
             as: "customerData",
           },
         },
-        {
-          $unwind: "$customerData",
-        },
+        { $unwind: "$customerData" },
+
         {
           $replaceRoot: {
             newRoot: {
@@ -55,19 +105,36 @@ class TicketModel {
                 "$$ROOT",
                 {
                   customerData: {
-                    firstName: "$customerData.firstName", // rename atau ambil field spesifik
-                    lastName: "$customerData.lastName", // rename atau ambil field spesifik
-                    idType: "$customerData.idType", // rename atau ambil field spesifik
-                    idNumber: "$customerData.idNumber", // rename atau ambil field spesifik
-                    cid: "$customerData.cid", // rename atau ambil field spesifik
+                    firstName: "$customerData.firstName",
+                    lastName: "$customerData.lastName",
+                    idType: "$customerData.idType",
+                    idNumber: "$customerData.idNumber",
+                    cid: "$customerData.cid",
                   },
                 },
               ],
             },
           },
         },
+        {
+          $addFields: {
+            // tambahkan minDuration dari slaHistory
+            minDuration: {
+              $min: "$slaHistory.durationMinutes",
+            },
+          },
+        },
+        {
+          $sort: {
+            // urutkan berdasarkan minDuration ascending (tercepat)
+            minDuration: 1,
+          },
+        },
+
+        { $unset: "minDuration" }, // hapus field minDuration dari hasil akhir
       ])
       .toArray();
+    console.log(tickets);
 
     let data = await Promise.all(
       tickets.map(async (ticket) => {

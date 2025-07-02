@@ -6,6 +6,11 @@ export async function middleware(request: NextRequest) {
   const authorization = cookieStore.get("authorization");
 
   // Redirect untuk halaman dashboard
+
+  if (request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   if (
     request.nextUrl.pathname?.startsWith("/dashboard") ||
     request.nextUrl.pathname?.startsWith("/dashboard/tickets") ||
@@ -78,5 +83,6 @@ export const config = {
     "/login",
     "/dashboard",
     "/dashboard/tickets",
+    "/",
   ],
 };

@@ -17,6 +17,8 @@ import {
 } from "../ui/card";
 import { TicketStatusChart } from "./ticket-status-chart";
 import { TicketCategoryChart } from "./ticket-category-chart";
+import { DownloadIcon } from "lucide-react";
+import { exportTicketsToExcel } from "@/helpers/generateExcel";
 
 export function TicketDateFilter() {
   const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
@@ -83,9 +85,20 @@ export function TicketDateFilter() {
       {isFiltered && (
         <>
           <div className="mt-6">
-            <h3 className="text-lg font-medium mb-4">
-              Filtered Tickets ({filteredTickets.length})
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">
+                Filtered Tickets ({filteredTickets.length})
+              </h3>
+              {filteredTickets.length > 0 && (
+                <button
+                  onClick={() => exportTicketsToExcel(filteredTickets)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded border border-primary text-primary hover:bg-primary/90 hover:text-white"
+                >
+                  <DownloadIcon className="w-4 h-4" /> Export to Excel
+                </button>
+              )}
+            </div>
+
             {filteredTickets.length > 0 ? (
               <DataTable columns={columns} data={filteredTickets} />
             ) : (
