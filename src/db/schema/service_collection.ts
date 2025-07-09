@@ -19,7 +19,7 @@ export const ServiceSchema = z
       .string()
       .min(1, { message: "Setup fee is required" })
       .refine((val) => Number(val) >= 1000, {
-        message: "Minimum setup fee is 1000",
+        message: "Minimum setup fee is 0",
       }),
 
     slug: z.string().optional(),
