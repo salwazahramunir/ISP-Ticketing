@@ -204,30 +204,30 @@ export function ViewCustomerModal({ customer }: ViewCustomerModalProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
-                        Service ID
+                        Service Name
                       </p>
-                      <p>{customer?.serviceId}</p>
+                      <p>{customer?.serviceData.name}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
-                        Installation Date
+                        Service ID
                       </p>
-                      <p>{formatDate(customer?.installationDate)}</p>
+                      <p>{customer?.serviceId}</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
-                        Contract Length
+                        Installation Date
                       </p>
-                      <p>{customer?.contractLength} months</p>
+                      <p>{formatDate(customer?.installationDate)}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
-                        VLAN
+                        Contract Length
                       </p>
-                      <p>{customer?.vlan || "-"}</p>
+                      <p>{customer?.contractLength} months</p>
                     </div>
                   </div>
 
@@ -248,13 +248,21 @@ export function ViewCustomerModal({ customer }: ViewCustomerModalProps) {
                     </div>
                   )}
 
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Notes
-                    </p>
-                    <p className="whitespace-pre-wrap">
-                      {customer?.note || "No notes available"}
-                    </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        VLAN
+                      </p>
+                      <p>{customer?.vlan || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Notes
+                      </p>
+                      <p className="whitespace-pre-wrap">
+                        {customer?.note || "No notes available"}
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
