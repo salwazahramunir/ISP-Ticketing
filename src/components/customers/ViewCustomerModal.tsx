@@ -18,7 +18,7 @@ import { Customer } from "@/db/schema/customer_collection";
 import clsx from "clsx";
 
 interface ViewCustomerModalProps {
-  customer: Customer | undefined;
+  customer: any;
 }
 
 export function ViewCustomerModal({ customer }: ViewCustomerModalProps) {
@@ -206,7 +206,12 @@ export function ViewCustomerModal({ customer }: ViewCustomerModalProps) {
                       <p className="text-sm font-medium text-muted-foreground">
                         Service Name
                       </p>
-                      <p>{customer?.serviceData.name}</p>
+
+                      {customer.service?.serviceName ? (
+                        <p>{customer?.service.serviceName}</p>
+                      ) : (
+                        <p>{customer?.serviceData.name}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
@@ -260,7 +265,7 @@ export function ViewCustomerModal({ customer }: ViewCustomerModalProps) {
                         Notes
                       </p>
                       <p className="whitespace-pre-wrap">
-                        {customer?.note || "No notes available"}
+                        {customer?.note || "-"}
                       </p>
                     </div>
                   </div>
@@ -298,8 +303,6 @@ export function ViewCustomerModal({ customer }: ViewCustomerModalProps) {
                       </p>
                       <p>{customer?.nib || "-"}</p>
                     </div>
-
-                    <Separator />
                   </CardContent>
                 </Card>
               </TabsContent>

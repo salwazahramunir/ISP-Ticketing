@@ -30,6 +30,7 @@ import SlaCountdown from "@/components/tickets/count-down-sla";
 import toast from "react-hot-toast";
 import { CustomError } from "@/type";
 import { useProfileContext } from "@/context/profile-context";
+import { ViewCustomerModal } from "@/components/customers/ViewCustomerModal";
 
 export default function TicketDetailsPage() {
   const router = useRouter();
@@ -251,6 +252,7 @@ export default function TicketDetailsPage() {
                             </p>
                           </div>
                         </div>
+
                         <div className="flex items-center gap-2">
                           <Tag className="h-4 w-4 text-muted-foreground" />
                           <div>
@@ -262,6 +264,21 @@ export default function TicketDetailsPage() {
                             </p>
                           </div>
                         </div>
+
+                        {/* HR span full */}
+                        <hr className="col-span-full border-muted" />
+
+                        {ticketData?.customerData && (
+                          <div className="col-span-full space-y-2">
+                            <p className="text-sm text-muted-foreground">
+                              Click the button below to view customer details in
+                              a modal
+                            </p>
+                            <ViewCustomerModal
+                              customer={ticketData?.customerData}
+                            />
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

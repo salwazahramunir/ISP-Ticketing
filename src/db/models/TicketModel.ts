@@ -134,7 +134,6 @@ class TicketModel {
         { $unset: "minDuration" }, // hapus field minDuration dari hasil akhir
       ])
       .toArray();
-    console.log(tickets);
 
     let data = await Promise.all(
       tickets.map(async (ticket) => {
@@ -172,6 +171,7 @@ class TicketModel {
         {
           $match: { _id: new ObjectId(id) },
         },
+        // JOIN: Customer (ambil semua field)
         {
           $lookup: {
             from: "customers",
@@ -186,20 +186,51 @@ class TicketModel {
               },
               {
                 $project: {
-                  firstName: 1,
-                  lastName: 1,
-                  idNumber: 1,
-                  idType: 1,
-                  cid: 1,
+                  isDeleted: 0,
+                  createdAt: 0,
+                  updatedAt: 0,
+                  deletedAt: 0,
                 },
               },
             ],
             as: "customerData",
           },
         },
+        { $unwind: "$customerData" },
+        // JOIN: Service (masih boleh pakai project kalau mau)
         {
-          $unwind: "$customerData",
+          $lookup: {
+            from: "services",
+            let: { serviceIdStr: "$customerData.serviceId" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", { $toObjectId: "$$serviceIdStr" }],
+                  },
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  isDeleted: 0,
+                  createdAt: 0,
+                  updatedAt: 0,
+                  deletedAt: 0,
+                },
+              },
+            ],
+            as: "customerData.serviceData",
+          },
         },
+        {
+          $unwind: {
+            path: "$customerData.serviceData",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        // REPLACE ROOT (gabungkan service ke customerData.service)
         {
           $replaceRoot: {
             newRoot: {
@@ -207,15 +238,19 @@ class TicketModel {
                 "$$ROOT",
                 {
                   customerData: {
-                    firstName: "$customerData.firstName",
-                    lastName: "$customerData.lastName",
-                    idType: "$customerData.idType",
-                    idNumber: "$customerData.idNumber",
-                    cid: "$customerData.cid",
+                    $mergeObjects: [
+                      "$customerData",
+                      { service: "$customerData.serviceData" },
+                    ],
                   },
                 },
               ],
             },
+          },
+        },
+        {
+          $project: {
+            "customerData.serviceData": 0, // opsional: hapus field sementara
           },
         },
       ])
