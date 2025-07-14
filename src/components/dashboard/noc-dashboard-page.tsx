@@ -21,6 +21,8 @@ import { useProfileContext } from "@/context/profile-context";
 import { updateStatusTicket } from "@/action";
 import SlaCountdown from "../tickets/count-down-sla";
 import { useRouter } from "next/navigation";
+import { NewsWidget } from "../news/news-widget";
+import { NewsProvider } from "@/context/news-context";
 
 export default function NocDashboardPage() {
   const { tickets: initialTickets, fetchTickets } = useTicketContext();
@@ -141,298 +143,324 @@ export default function NocDashboardPage() {
   }, [initialTickets]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">
-            Incoming Tickets
-          </h2>
-          <p className="text-muted-foreground">
-            View and manage incoming network tickets
-          </p>
+    <div className="flex flex-col lg:flex-row gap-4">
+      {/* KIRI: Recent News */}
+      <div className="w-full lg:w-3/4">
+        {/* Tempel di sini div Incoming Tickets kamu */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">
+                Incoming Tickets
+              </h2>
+              <p className="text-muted-foreground">
+                View and manage incoming network tickets
+              </p>
+            </div>
+            <Button onClick={handleRefresh} variant="outline" className="gap-2">
+              {refreshing ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              Refresh
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search tickets..."
+                className="pl-8"
+                // value={searchQuery}
+                onChange={(e) => searchTickets(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <Tabs defaultValue="all" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="all">All Tickets</TabsTrigger>
+              <TabsTrigger value="open">Open</TabsTrigger>
+              <TabsTrigger value="in-progress">In Progress</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="all" className="space-y-4">
+              {filterTickets && filterTickets.length === 0 ? (
+                <div className="text-center py-10 border rounded-lg">
+                  <p className="text-muted-foreground">
+                    No tickets found matching your criteria
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                  {filterTickets.map((ticket) => {
+                    const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
+                    const lastSla =
+                      ticket.slaHistory?.[ticket.slaHistory.length - 1];
+                    return (
+                      <Card
+                        key={ticket._id.toString()}
+                        className={
+                          lastLog?.status === "Escalated"
+                            ? "border-l-4 border-l-blue-500"
+                            : "border-l-4 border-l-yellow-400"
+                        }
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-lg">
+                              {ticket.code}
+                            </CardTitle>
+                            <div className="flex gap-2">
+                              {lastLog
+                                ? getStatusBadge(lastLog.status as string)
+                                : null}
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="font-medium">
+                                {ticket.ticketCategory}
+                              </p>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {ticket.description}
+                              </p>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>
+                                Customer:{" "}
+                                <span className="font-medium">
+                                  {ticket.customerData?.firstName}
+                                </span>
+                              </span>
+                              <SlaCountdown
+                                assignedAt={lastSla?.assignedAt ?? new Date()}
+                                durationMinutes={lastSla?.durationMinutes ?? 0}
+                              />
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>
+                                Category:{" "}
+                                <span className="font-medium capitalize">
+                                  {ticket.ticketCategory}
+                                </span>
+                              </span>
+                              <span>
+                                Created:{" "}
+                                <span className="font-medium">
+                                  {new Date(
+                                    ticket.createdAt
+                                  ).toLocaleDateString()}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="pt-0">
+                          {renderStatusButton(ticket, lastLog)}
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="open" className="space-y-4">
+              {filterTickets.filter((el) => el.status === "Escalated")
+                .length === 0 ? (
+                <div
+                  key="notfound"
+                  className="text-center py-10 border rounded-lg"
+                >
+                  <p className="text-muted-foreground">
+                    No tickets found matching your criteria
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                  {filterTickets
+                    .filter((el) => el.status === "Escalated")
+                    .map((ticket) => {
+                      const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
+                      const lastSla =
+                        ticket.slaHistory?.[ticket.slaHistory.length - 1];
+                      return (
+                        <Card
+                          key={ticket._id.toString()}
+                          className={
+                            lastLog?.status === "Escalated"
+                              ? "border-l-4 border-l-blue-500"
+                              : ""
+                          }
+                        >
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <CardTitle className="text-lg">
+                                {ticket.code}
+                              </CardTitle>
+                              <div className="flex gap-2">
+                                {lastLog
+                                  ? getStatusBadge(lastLog.status as string)
+                                  : null}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div>
+                                <p className="font-medium">
+                                  {ticket.ticketCategory}
+                                </p>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {ticket.description}
+                                </p>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>
+                                  Customer:{" "}
+                                  <span className="font-medium">
+                                    {ticket.customerData?.firstName}
+                                  </span>
+                                </span>
+                                <SlaCountdown
+                                  assignedAt={lastSla?.assignedAt ?? new Date()}
+                                  durationMinutes={
+                                    lastSla?.durationMinutes ?? 0
+                                  }
+                                />
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>
+                                  Category:{" "}
+                                  <span className="font-medium capitalize">
+                                    {ticket.ticketCategory}
+                                  </span>
+                                </span>
+                                <span>
+                                  Created:{" "}
+                                  <span className="font-medium">
+                                    {new Date(
+                                      ticket.createdAt
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </CardContent>
+                          <CardFooter className="pt-0">
+                            {renderStatusButton(ticket, lastLog)}
+                          </CardFooter>
+                        </Card>
+                      );
+                    })}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="in-progress" className="space-y-4">
+              {filterTickets.filter((el) => el.status === "Started").length ===
+              0 ? (
+                <div className="text-center py-10 border rounded-lg">
+                  <p className="text-muted-foreground">
+                    No tickets found matching your criteria
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                  {filterTickets
+                    .filter((el) => el.status === "Started")
+                    .map((ticket) => {
+                      const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
+                      const lastSla =
+                        ticket.slaHistory?.[ticket.slaHistory.length - 1];
+                      return (
+                        <Card
+                          key={ticket._id.toString()}
+                          className={
+                            lastLog?.status === "Started"
+                              ? "border-l-4 border-l-yellow-400"
+                              : ""
+                          }
+                        >
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <CardTitle className="text-lg">
+                                {ticket.code}
+                              </CardTitle>
+                              <div className="flex gap-2">
+                                {lastLog
+                                  ? getStatusBadge(lastLog.status as string)
+                                  : null}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div>
+                                <p className="font-medium">
+                                  {ticket.ticketCategory}
+                                </p>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {ticket.description}
+                                </p>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>
+                                  Customer:{" "}
+                                  <span className="font-medium">
+                                    {ticket.customerData?.firstName}
+                                  </span>
+                                </span>
+                                <SlaCountdown
+                                  assignedAt={lastSla?.assignedAt ?? new Date()}
+                                  durationMinutes={
+                                    lastSla?.durationMinutes ?? 0
+                                  }
+                                />
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>
+                                  Category:{" "}
+                                  <span className="font-medium capitalize">
+                                    {ticket.ticketCategory}
+                                  </span>
+                                </span>
+                                <span>
+                                  Created:{" "}
+                                  <span className="font-medium">
+                                    {new Date(
+                                      ticket.createdAt
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </CardContent>
+                          <CardFooter className="pt-0">
+                            {renderStatusButton(ticket, lastLog)}
+                          </CardFooter>
+                        </Card>
+                      );
+                    })}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
-        <Button onClick={handleRefresh} variant="outline" className="gap-2">
-          {refreshing ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          Refresh
-        </Button>
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search tickets..."
-            className="pl-8"
-            // value={searchQuery}
-            onChange={(e) => searchTickets(e.target.value)}
-          />
-        </div>
+      {/* KANAN: Incoming Tickets */}
+      <div className="w-full lg:w-1/4">
+        <NewsProvider>
+          <NewsWidget />
+        </NewsProvider>
       </div>
-
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Tickets</TabsTrigger>
-          <TabsTrigger value="open">Open</TabsTrigger>
-          <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-4">
-          {filterTickets.length === 0 ? (
-            <div className="text-center py-10 border rounded-lg">
-              <p className="text-muted-foreground">
-                No tickets found matching your criteria
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterTickets.map((ticket) => {
-                const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
-                const lastSla =
-                  ticket.slaHistory?.[ticket.slaHistory.length - 1];
-                return (
-                  <Card
-                    key={ticket._id.toString()}
-                    className={
-                      lastLog?.status === "Escalated"
-                        ? "border-l-4 border-l-blue-500"
-                        : "border-l-4 border-l-yellow-400"
-                    }
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{ticket.code}</CardTitle>
-                        <div className="flex gap-2">
-                          {lastLog
-                            ? getStatusBadge(lastLog.status as string)
-                            : null}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="font-medium">{ticket.ticketCategory}</p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {ticket.description}
-                          </p>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>
-                            Customer:{" "}
-                            <span className="font-medium">
-                              {ticket.customerData?.firstName}
-                            </span>
-                          </span>
-                          <SlaCountdown
-                            assignedAt={lastSla?.assignedAt ?? new Date()}
-                            durationMinutes={lastSla?.durationMinutes ?? 0}
-                          />
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>
-                            Category:{" "}
-                            <span className="font-medium capitalize">
-                              {ticket.ticketCategory}
-                            </span>
-                          </span>
-                          <span>
-                            Created:{" "}
-                            <span className="font-medium">
-                              {new Date(ticket.createdAt).toLocaleDateString()}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="pt-0">
-                      {renderStatusButton(ticket, lastLog)}
-                    </CardFooter>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="open" className="space-y-4">
-          {filterTickets.filter((el) => el.status === "Escalated").length ===
-          0 ? (
-            <div className="text-center py-10 border rounded-lg">
-              <p className="text-muted-foreground">
-                No tickets found matching your criteria
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterTickets
-                .filter((el) => el.status === "Escalated")
-                .map((ticket) => {
-                  const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
-                  const lastSla =
-                    ticket.slaHistory?.[ticket.slaHistory.length - 1];
-                  return (
-                    <Card
-                      key={ticket._id.toString()}
-                      className={
-                        lastLog?.status === "Escalated"
-                          ? "border-l-4 border-l-blue-500"
-                          : ""
-                      }
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">
-                            {ticket.code}
-                          </CardTitle>
-                          <div className="flex gap-2">
-                            {lastLog
-                              ? getStatusBadge(lastLog.status as string)
-                              : null}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="font-medium">
-                              {ticket.ticketCategory}
-                            </p>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {ticket.description}
-                            </p>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>
-                              Customer:{" "}
-                              <span className="font-medium">
-                                {ticket.customerData?.firstName}
-                              </span>
-                            </span>
-                            <SlaCountdown
-                              assignedAt={lastSla?.assignedAt ?? new Date()}
-                              durationMinutes={lastSla?.durationMinutes ?? 0}
-                            />
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>
-                              Category:{" "}
-                              <span className="font-medium capitalize">
-                                {ticket.ticketCategory}
-                              </span>
-                            </span>
-                            <span>
-                              Created:{" "}
-                              <span className="font-medium">
-                                {new Date(
-                                  ticket.createdAt
-                                ).toLocaleDateString()}
-                              </span>
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        {renderStatusButton(ticket, lastLog)}
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="in-progress" className="space-y-4">
-          {filterTickets.filter((el) => el.status === "Started").length ===
-          0 ? (
-            <div className="text-center py-10 border rounded-lg">
-              <p className="text-muted-foreground">
-                No tickets found matching your criteria
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterTickets
-                .filter((el) => el.status === "Started")
-                .map((ticket) => {
-                  const lastLog = ticket.logs?.[ticket.logs.length - 1]; // ambil log terakhir per ticket
-                  const lastSla =
-                    ticket.slaHistory?.[ticket.slaHistory.length - 1];
-                  return (
-                    <Card
-                      key={ticket._id.toString()}
-                      className={
-                        lastLog?.status === "Started"
-                          ? "border-l-4 border-l-yellow-400"
-                          : ""
-                      }
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">
-                            {ticket.code}
-                          </CardTitle>
-                          <div className="flex gap-2">
-                            {lastLog
-                              ? getStatusBadge(lastLog.status as string)
-                              : null}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="font-medium">
-                              {ticket.ticketCategory}
-                            </p>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {ticket.description}
-                            </p>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>
-                              Customer:{" "}
-                              <span className="font-medium">
-                                {ticket.customerData?.firstName}
-                              </span>
-                            </span>
-                            <SlaCountdown
-                              assignedAt={lastSla?.assignedAt ?? new Date()}
-                              durationMinutes={lastSla?.durationMinutes ?? 0}
-                            />
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>
-                              Category:{" "}
-                              <span className="font-medium capitalize">
-                                {ticket.ticketCategory}
-                              </span>
-                            </span>
-                            <span>
-                              Created:{" "}
-                              <span className="font-medium">
-                                {new Date(
-                                  ticket.createdAt
-                                ).toLocaleDateString()}
-                              </span>
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        {renderStatusButton(ticket, lastLog)}
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
