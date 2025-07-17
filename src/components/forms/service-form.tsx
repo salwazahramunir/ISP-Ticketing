@@ -54,7 +54,7 @@ export function ServiceForm({
     defaultValues: {
       serviceName: initialData?.serviceName || "",
       monthlyPrice: initialData?.monthlyPrice || "0",
-      setupFee: initialData?.setupFee || "0",
+      // setupFee: initialData?.setupFee || "0",
       planDescription: initialData?.planDescription || "",
       status: initialData?.status || "Available",
     },
@@ -104,22 +104,22 @@ export function ServiceForm({
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="monthlyPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Monthly Price (Rp)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} {...field} />
-                    </FormControl>
-                    <FormDescription>Monthly subscription fee</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+            <FormField
+              control={form.control}
+              name="monthlyPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Monthly Price (Rp)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={0} {...field} />
+                  </FormControl>
+                  <FormDescription>Monthly subscription fee</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* <FormField
                 control={form.control}
                 name="setupFee"
                 render={({ field }) => (
@@ -132,8 +132,8 @@ export function ServiceForm({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-            </div>
+              /> */}
+            {/* </div> */}
 
             <FormField
               control={form.control}

@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const input: ServiceInput = {
       serviceName: body.serviceName,
       monthlyPrice: body.monthlyPrice,
-      setupFee: body.setupFee,
+      // setupFee: body.setupFee,
       planDescription: body.planDescription,
       status: body.status,
     };

@@ -50,18 +50,18 @@ export const columns: ColumnDef<Service>[] = [
       return formatted;
     },
   },
-  {
-    accessorKey: "setupFee",
-    header: "Setup Fee",
-    cell: ({ row }) => {
-      const price = Number.parseFloat(row.getValue("setupFee"));
-      const formatted = new Intl.NumberFormat("ID-id", {
-        style: "currency",
-        currency: "IDR",
-      }).format(price);
-      return formatted;
-    },
-  },
+  // {
+  //   accessorKey: "setupFee",
+  //   header: "Setup Fee",
+  //   cell: ({ row }) => {
+  //     const price = Number.parseFloat(row.getValue("setupFee"));
+  //     const formatted = new Intl.NumberFormat("ID-id", {
+  //       style: "currency",
+  //       currency: "IDR",
+  //     }).format(price);
+  //     return formatted;
+  //   },
+  // },
   {
     accessorKey: "status",
     header: "Status",
