@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       serviceId: body.serviceId,
       installationDate: body.installationDate,
       contractLength: body.contractLength,
+      setupFee: body.setupFee ?? 0,
       note: body.note ?? "",
       status: body.status,
     };

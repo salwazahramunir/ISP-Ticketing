@@ -54,6 +54,7 @@ export async function PUT(
       installationDate: body.installationDate,
       contractLength: body.contractLength,
       note: body.note ?? "",
+      setupFee: body.setupFee ?? 0,
       status: body.status,
     };
 

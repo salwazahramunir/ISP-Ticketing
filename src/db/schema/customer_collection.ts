@@ -50,6 +50,12 @@ export const CustomerSchema = z
       required_error: "Contract length is required",
       invalid_type_error: "Contract length harus berupa string",
     }),
+    setupFee: z
+      .string()
+      .min(1, { message: "Setup fee is required" })
+      .refine((val) => Number(val) >= 1000, {
+        message: "Minimum setup fee is 0",
+      }),
     note: z.string().optional(),
     status: z.enum(validStatus, {
       required_error: "Status is required",

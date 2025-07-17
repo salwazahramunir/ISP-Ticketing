@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -80,6 +81,7 @@ export function CustomerForm({
       serviceId: initialData?.serviceId || "",
       installationDate: initialData?.installationDate ?? new Date(),
       contractLength: initialData?.contractLength || "Tidak ada",
+      setupFee: initialData?.setupFee || "0",
       note: initialData?.note || "",
       status: initialData?.status || "Active",
       companyName: initialData?.companyName || "",
@@ -530,8 +532,10 @@ export function CustomerForm({
                   control={form.control}
                   name="installationDate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Installation Date</FormLabel>
+                    <FormItem className="flex flex-col mt-1">
+                      <FormLabel className="m-0 mb-1">
+                        Installation Date
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -568,32 +572,49 @@ export function CustomerForm({
 
                 <FormField
                   control={form.control}
-                  name="status"
+                  name="setupFee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {["Active", "Inactive"].map((dt) => (
-                            <SelectItem key={dt} value={dt}>
-                              {dt}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Setup Fee (Rp)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        One-time installation fee
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {["Active", "Inactive"].map((dt) => (
+                          <SelectItem key={dt} value={dt}>
+                            {dt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
